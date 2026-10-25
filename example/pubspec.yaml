@@ -1,6 +1,6 @@
 # Changes from upstream: renamed the example, simplified dependencies and enabled native SwiftPM support.
 name: timetable_next_example
-description: A simple example app for the timetable package
+description: A simple example app for the timetable_next package
 publish_to: none
 version: 1.0.0+1
 

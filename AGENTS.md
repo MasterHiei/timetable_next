@@ -1,4 +1,4 @@
-# timetable-next
+# timetable_next
 
 Read [CONTEXT.md](CONTEXT.md) for code ownership and [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow.
 

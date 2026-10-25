@@ -1,6 +1,6 @@
 # Project context
 
-`timetable-next` continues [JonasWanke/timetable](https://github.com/JonasWanke/timetable) from alpha.15. It is a Flutter calendar display and interaction library. The host application owns persistence, synchronization, time-zone conversion and recurrence rules.
+`timetable_next` continues [JonasWanke/timetable](https://github.com/JonasWanke/timetable) from alpha.15. It is a Flutter calendar display and interaction library. The host application owns persistence, synchronization, time-zone conversion and recurrence rules.
 
 ## Code map
 

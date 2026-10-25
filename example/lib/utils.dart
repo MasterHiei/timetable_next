@@ -31,7 +31,7 @@ class _ExampleAppState extends State<ExampleApp> {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'Timetable Next example',
+    title: 'timetable_next example',
     theme: _createTheme(Brightness.light),
     darkTheme: _createTheme(Brightness.dark),
     themeMode: _themeMode,

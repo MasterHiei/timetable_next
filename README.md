@@ -1,4 +1,4 @@
-# timetable-next
+# timetable_next
 
 <!-- Changes from upstream: updated package usage, examples, compatibility and source attribution. -->
 

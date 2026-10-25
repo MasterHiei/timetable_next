@@ -1,7 +1,7 @@
-# Changes from upstream: updated the example application label.
+<!-- Changes from upstream: updated the example application label. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="timetable-next"
+        android:label="timetable_next"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

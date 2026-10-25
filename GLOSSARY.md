@@ -1,6 +1,6 @@
 # Calendar display
 
-Timetable Next presents calendar data supplied by a host application.
+timetable_next presents calendar data supplied by a host application.
 
 ## Language
 
