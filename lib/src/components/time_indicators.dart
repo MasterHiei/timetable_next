@@ -1,4 +1,4 @@
-// Changes from upstream: corrected the child-position documentation.
+// Changes from upstream: corrected child-position documentation and constrained layout size.
 import 'dart:math' as math;
 
 import 'package:black_hole_flutter/black_hole_flutter.dart';
@@ -241,7 +241,7 @@ class _TimeIndicatorsLayout extends RenderBox
     assert(!sizedByParent);
 
     if (children.isEmpty) {
-      size = Size(0, constraints.maxHeight);
+      size = constraints.constrain(Size(0, constraints.maxHeight));
       return;
     }
 
@@ -252,7 +252,7 @@ class _TimeIndicatorsLayout extends RenderBox
       width = math.max(width, child.size.width);
     }
 
-    size = Size(width, constraints.maxHeight);
+    size = constraints.constrain(Size(width, constraints.maxHeight));
     for (final child in children) {
       final data = child.parentData! as _TimeIndicatorParentData;
       final time = data.time!;
