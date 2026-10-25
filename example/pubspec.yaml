@@ -1,29 +1,30 @@
-name: timetable_example
+# Changes from upstream: renamed the example, simplified dependencies and enabled native SwiftPM support.
+name: timetable_next_example
 description: A simple example app for the timetable package
 publish_to: none
+version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
-  flutter: '>=3.10.0'
+  sdk: '>=3.10.0 <4.0.0'
+  flutter: '>=3.38.1'
 
 dependencies:
   black_hole_flutter: ^1.1.0
-  collection: ^1.18.0
-  debug_overlay: ^1.0.0
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  time: ^2.1.4
-  timetable:
+  timetable_next:
     path: ../
 
 dev_dependencies:
-  supernova:
-    git:
-      url: https://github.com/JonasWanke/supernova.git
-      path: supernova
-      ref: c89aad86b75155d5ea8c61c9a0d9ac635c1b92ec
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
 
 flutter:
+  config:
+    enable-swift-package-manager: true
   uses-material-design: true

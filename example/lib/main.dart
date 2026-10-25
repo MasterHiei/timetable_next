@@ -1,19 +1,15 @@
-// ignore_for_file: avoid_print
-
+// Changes from upstream: updated package imports and SDK duration usage, removing optional diagnostics.
 import 'dart:async';
 
 import 'package:black_hole_flutter/black_hole_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:time/time.dart';
-import 'package:timetable/timetable.dart';
+import 'package:timetable_next/timetable_next.dart';
 
-// ignore: unused_import
 import 'positioning_demo.dart';
 import 'utils.dart';
 
 Future<void> main() async {
-  initDebugOverlay();
   runApp(const ExampleApp(child: TimetableExample()));
 }
 
@@ -38,17 +34,11 @@ class _TimetableExampleState extends State<TimetableExample>
       _visibleDateRange == PredefinedVisibleDateRange.fixed;
 
   late final _dateController = DateController(
-    // All parameters are optional.
-    // initialDate: DateTimeTimetable.today(),
     visibleRange: _visibleDateRange.visibleDateRange,
   );
 
   final _timeController = TimeController(
-    // All parameters are optional.
-    // minDuration: 1.hours,
-    // maxDuration: 10.hours,
-    // initialRange: TimeRange(8.hours, 20.hours),
-    maxRange: TimeRange(0.hours, 24.hours),
+    maxRange: TimeRange(Duration.zero, const Duration(hours: 24)),
   );
 
   final _draggedEvents = <BasicEvent>[];
@@ -63,7 +53,6 @@ class _TimetableExampleState extends State<TimetableExample>
   @override
   Widget build(BuildContext context) {
     return TimetableConfig<BasicEvent>(
-      // Required:
       dateController: _dateController,
       timeController: _timeController,
       eventBuilder: (context, event) => _buildPartDayEvent(event),
@@ -78,7 +67,6 @@ class _TimetableExampleState extends State<TimetableExample>
           ),
         ],
       ),
-      // Optional:
       eventProvider: eventProviderFromFixedList(positioningDemoEvents),
       allDayEventBuilder: (context, event, info) => BasicAllDayEventWidget(
         event,
@@ -117,30 +105,12 @@ class _TimetableExampleState extends State<TimetableExample>
         onMultiDateHeaderOverflowTap: (date) =>
             _showSnackBar('Tapped on the overflow of $date.'),
       ),
-      theme: TimetableThemeData(
-        context,
-        // startOfWeek: DateTime.monday,
-        // dateDividersStyle: DateDividersStyle(
-        //   context,
-        //   color: Colors.blue.withOpacity(.3),
-        //   width: 2,
-        // ),
-        // nowIndicatorStyle: NowIndicatorStyle(
-        //   context,
-        //   lineColor: Colors.green,
-        //   shape: TriangleNowIndicatorShape(color: Colors.green),
-        // ),
-        // timeIndicatorStyleProvider: (time) => TimeIndicatorStyle(
-        //   context,
-        //   time,
-        //   alwaysUse24HourFormat: false,
-        // ),
-      ),
+      theme: TimetableThemeData(context),
     );
   }
 
   Widget _buildPartDayEvent(BasicEvent event) {
-    final roundedTo = 15.minutes;
+    const roundedTo = Duration(minutes: 15);
 
     return PartDayDraggableEvent(
       onDragStart: () => setState(() => _draggedEvents.add(event)),
@@ -150,7 +120,7 @@ class _TimetableExampleState extends State<TimetableExample>
         final oldEvent = _draggedEvents[index];
         _draggedEvents[index] = oldEvent.copyWith(
           start: dateTime,
-          end: dateTime + oldEvent.duration,
+          end: dateTime.add(oldEvent.duration),
         );
       }),
       onDragEnd: (dateTime) {
@@ -244,9 +214,9 @@ extension on PredefinedVisibleDateRange {
       PredefinedVisibleDateRange.workWeek => VisibleDateRange.weekAligned(5),
       PredefinedVisibleDateRange.week => VisibleDateRange.week(),
       PredefinedVisibleDateRange.fixed => VisibleDateRange.fixed(
-          DateTimeTimetable.today(),
-          DateTime.daysPerWeek,
-        ),
+        DateTimeTimetable.today(),
+        DateTime.daysPerWeek,
+      ),
     };
   }
 

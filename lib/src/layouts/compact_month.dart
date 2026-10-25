@@ -1,3 +1,4 @@
+// Changes from upstream: initialized the month from the inherited date controller.
 import 'package:flutter/material.dart';
 
 import '../components/month_widget.dart';
@@ -11,10 +12,8 @@ import '../utils.dart';
 /// visible month is synced to it and swiping between months also updates that
 /// [DateController].
 class CompactMonthTimetable extends StatefulWidget {
-  CompactMonthTimetable({
-    super.key,
-    MonthWidgetBuilder? monthBuilder,
-  }) : monthBuilder = monthBuilder ?? ((context, month) => MonthWidget(month));
+  CompactMonthTimetable({super.key, MonthWidgetBuilder? monthBuilder})
+    : monthBuilder = monthBuilder ?? ((context, month) => MonthWidget(month));
 
   final MonthWidgetBuilder monthBuilder;
 
@@ -25,18 +24,12 @@ class CompactMonthTimetable extends StatefulWidget {
 class _CompactMonthTimetableState extends State<CompactMonthTimetable>
     with TickerProviderStateMixin {
   DateController? dateController;
-  late final MonthPageController _monthPageController;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _monthPageController = MonthPageController(
-      initialMonth: dateController?.date.value.firstDayOfMonth ??
-          DateTimeTimetable.currentMonth(),
-    );
-    _monthPageController.addListener(_onMonthPageControllerChanged);
-  }
+  // Resolve the inherited date controller before lazily creating the month view.
+  late final _monthPageController = MonthPageController(
+    initialMonth:
+        dateController?.date.value.firstDayOfMonth ??
+        DateTimeTimetable.currentMonth(),
+  )..addListener(_onMonthPageControllerChanged);
 
   @override
   void didChangeDependencies() {

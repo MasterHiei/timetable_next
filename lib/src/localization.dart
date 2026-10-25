@@ -1,3 +1,4 @@
+// Changes from upstream: corrected locale contribution instructions and API names.
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
@@ -6,7 +7,7 @@ import 'week.dart';
 
 /// Provides localized strings for Timetable widgets.
 ///
-/// Supported [Locale.languageCode]s:
+/// Supported locales:
 ///
 /// * `de` – German
 /// * `en` – English
@@ -28,7 +29,7 @@ import 'week.dart';
 ///
 /// ## Supporting a new locale
 ///
-/// 1. Copy `TimetableLocalizationsEn` from below, rename it (using the
+/// 1. Copy `TimetableLocalizationEn` from below, rename it (using the
 ///    UpperCamelCase variant of its
 ///    [BCP 47 language tag](https://en.wikipedia.org/wiki/IETF_language_tag)),
 ///    and update it to the new locale. The classes should be ordered
@@ -37,8 +38,8 @@ import 'week.dart';
 ///    alphabetically).
 /// 3. List the new locale in the README (alphabetically).
 /// 4. Add the new locale to the list above (alphabetically).
-/// 5. Add the locale to `_supportedLocale` in `example/lib/utils.dart`.
-/// 6. Open a pull request and you're done 🎉
+/// 5. Add the locale to `_supportedLocales` in `example/lib/utils.dart`.
+/// 6. Include locale coverage in the pull request.
 class TimetableLocalizationsDelegate
     extends LocalizationsDelegate<TimetableLocalizations> {
   const TimetableLocalizationsDelegate({
@@ -167,8 +168,7 @@ extension BuildContextTimetableLocalizations on BuildContext {
   }
 }
 
-// You want to contribute a new localization? Awesome! Please follow the steps
-// listed in the doc comment of [TimetableLocalizationsDelegate] above.
+// Locale implementations follow the steps on TimetableLocalizationsDelegate.
 
 class TimetableLocalizationDe extends TimetableLocalizations {
   const TimetableLocalizationDe();
@@ -246,8 +246,11 @@ class TimetableLocalizationHu extends TimetableLocalizations {
   const TimetableLocalizationHu();
 
   @override
-  List<String> weekLabels(Week week) =>
-      [weekOfYear(week), '${week.weekOfYear}. hét', '${week.weekOfYear}'];
+  List<String> weekLabels(Week week) => [
+    weekOfYear(week),
+    '${week.weekOfYear}. hét',
+    '${week.weekOfYear}',
+  ];
 
   @override
   String weekOfYear(Week week) =>

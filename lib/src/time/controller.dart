@@ -1,3 +1,4 @@
+// Changes from upstream: fixed animation futures, resource cleanup and detached-client limits.
 import 'package:flutter/material.dart';
 
 import '../config.dart';
@@ -19,27 +20,27 @@ class TimeController extends ValueNotifier<TimeRange> {
     TimeRange? initialRange,
     TimeRange? maxRange,
     this.minDayHeight,
-  })  : assert(!minDuration.isNegative),
-        assert(minDuration <= maxPossibleDuration),
-        assert(maxDuration == null || maxDuration <= maxPossibleDuration),
-        assert(maxDuration == null || minDuration <= maxDuration),
-        maxDuration = maxDuration ?? maxRange?.duration ?? maxPossibleDuration,
-        assert(initialRange == null || minDuration <= initialRange.duration),
-        assert(
-          maxDuration == null ||
-              initialRange == null ||
-              initialRange.duration <= maxDuration,
-        ),
-        assert(maxRange == null || minDuration <= maxRange.duration),
-        assert(
-          maxDuration == null ||
-              maxRange == null ||
-              maxDuration <= maxRange.duration,
-        ),
-        maxRange = maxRange ?? TimeRange.fullDay,
-        assert(minDayHeight == null || minDayHeight > 0),
-        assert(minDayHeight == null || minDayHeight.isFinite),
-        super(initialRange ?? _getInitialRange(maxDuration, maxRange)) {
+  }) : assert(!minDuration.isNegative),
+       assert(minDuration <= maxPossibleDuration),
+       assert(maxDuration == null || maxDuration <= maxPossibleDuration),
+       assert(maxDuration == null || minDuration <= maxDuration),
+       maxDuration = maxDuration ?? maxRange?.duration ?? maxPossibleDuration,
+       assert(initialRange == null || minDuration <= initialRange.duration),
+       assert(
+         maxDuration == null ||
+             initialRange == null ||
+             initialRange.duration <= maxDuration,
+       ),
+       assert(maxRange == null || minDuration <= maxRange.duration),
+       assert(
+         maxDuration == null ||
+             maxRange == null ||
+             maxDuration <= maxRange.duration,
+       ),
+       maxRange = maxRange ?? TimeRange.fullDay,
+       assert(minDayHeight == null || minDayHeight > 0),
+       assert(minDayHeight == null || minDayHeight.isFinite),
+       super(initialRange ?? _getInitialRange(maxDuration, maxRange)) {
     assert(initialRange == null || _isValidRange(initialRange));
   }
 
@@ -62,9 +63,6 @@ class TimeController extends ValueNotifier<TimeRange> {
   bool _isValidRange(TimeRange range) {
     if (!maxRange.contains(range)) return false;
 
-    // final max = maxDurationFromMinDayHeightOrDefault;
-    // return minDuration.coerceAtMost(max) <= range.duration &&
-    //     range.duration <= actualMaxDuration.coerceAtMost(max);
     return actualMinDuration <= range.duration &&
         range.duration <= actualMaxDuration;
   }
@@ -154,13 +152,12 @@ class TimeController extends ValueNotifier<TimeRange> {
   }
 
   void _notifyClientHeightsChanged() {
-    assert(_clients.isNotEmpty);
     if (minDayHeight == null) return;
 
     _updateMaxDurationFromMinDayHeight();
     value = TimeRange.centeredAround(
       value.centerTime,
-      value.duration.coerceAtMost(maxDurationFromMinDayHeight!),
+      value.duration.coerceAtMost(maxDurationFromMinDayHeightOrDefault),
     );
   }
 
@@ -192,16 +189,25 @@ class TimeController extends ValueNotifier<TimeRange> {
 
     cancelAnimation();
     final previousRange = value;
-    _animationController =
-        AnimationController(debugLabel: 'TimeController', vsync: vsync)
-          ..addListener(() {
-            value = TimeRange.lerp(
-              previousRange,
-              newValue,
-              _animationController!.value,
-            );
-          })
-          ..animateTo(1, duration: duration, curve: curve);
+    final controller = AnimationController(
+      debugLabel: 'TimeController',
+      vsync: vsync,
+    );
+    _animationController = controller;
+    controller.addListener(() {
+      value = TimeRange.lerp(previousRange, newValue, controller.value);
+    });
+    try {
+      await controller.animateTo(1, duration: duration, curve: curve).orCancel;
+    } on TickerCanceled {
+      // Match date-controller interruption semantics.
+    } finally {
+      // An older future must not dispose a replacement animation's controller.
+      if (identical(_animationController, controller)) {
+        _animationController = null;
+        controller.dispose();
+      }
+    }
   }
 
   void jumpToShowFullDay() {
@@ -219,6 +225,12 @@ class TimeController extends ValueNotifier<TimeRange> {
   void cancelAnimation() {
     _animationController?.dispose();
     _animationController = null;
+  }
+
+  @override
+  void dispose() {
+    cancelAnimation();
+    super.dispose();
   }
 }
 
@@ -253,10 +265,10 @@ class TimeControllerClientRegistration {
     this.controller,
     this.id, {
     required double height,
-  })  : assert(id >= 0),
-        assert(height > 0),
-        assert(height.isFinite),
-        _height = height;
+  }) : assert(id >= 0),
+       assert(height > 0),
+       assert(height.isFinite),
+       _height = height;
 
   final TimeController controller;
   final int id;
@@ -276,5 +288,7 @@ class TimeControllerClientRegistration {
   void unregister() {
     final wasInList = controller._clients.remove(this);
     assert(wasInList);
+    // Removing a client can expand the limit or reset the last cached height.
+    controller._notifyClientHeightsChanged();
   }
 }

@@ -1,3 +1,4 @@
+// Changes from upstream: constrained measured dimensions to the parent layout bounds.
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
@@ -171,6 +172,7 @@ class _ImmediateSizedBoxRenderObject extends RenderProxyBox {
         parentUsesSize: true,
       );
     }
-    size = Size(child!.size.width, heightGetter());
+    // Intrinsic height can exceed the parent's bounded height.
+    size = constraints.constrain(Size(child!.size.width, heightGetter()));
   }
 }

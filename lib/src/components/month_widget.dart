@@ -1,3 +1,4 @@
+// Changes from upstream: removed obsolete SDK-upgrade guidance.
 import 'package:black_hole_flutter/black_hole_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_layout_grid/flutter_layout_grid.dart';
@@ -26,42 +27,44 @@ class MonthWidget extends StatelessWidget {
     WeekWidgetBuilder? weekBuilder,
     DateWidgetBuilder? dateBuilder,
     this.style,
-  })  : assert(month.debugCheckIsValidTimetableMonth()),
-        weekDayBuilder =
-            weekDayBuilder ?? ((context, date) => WeekdayIndicator(date)),
-        weekBuilder = weekBuilder ??
-            ((context, week) {
-              final timetableTheme = TimetableTheme.orDefaultOf(context);
-              return WeekIndicator(
-                week,
-                style: (style ?? timetableTheme.monthWidgetStyleProvider(month))
-                        .removeIndividualWeekDecorations
-                    ? timetableTheme
-                        .weekIndicatorStyleProvider(week)
-                        .copyWith(decoration: const BoxDecoration())
-                    : null,
-                alwaysUseNarrowestVariant: true,
-              );
-            }),
-        dateBuilder = dateBuilder ??
-            ((context, date) {
-              assert(date.debugCheckIsValidTimetableDate());
+  }) : assert(month.debugCheckIsValidTimetableMonth()),
+       weekDayBuilder =
+           weekDayBuilder ?? ((context, date) => WeekdayIndicator(date)),
+       weekBuilder =
+           weekBuilder ??
+           ((context, week) {
+             final timetableTheme = TimetableTheme.orDefaultOf(context);
+             return WeekIndicator(
+               week,
+               style:
+                   (style ?? timetableTheme.monthWidgetStyleProvider(month))
+                       .removeIndividualWeekDecorations
+                   ? timetableTheme
+                         .weekIndicatorStyleProvider(week)
+                         .copyWith(decoration: const BoxDecoration())
+                   : null,
+               alwaysUseNarrowestVariant: true,
+             );
+           }),
+       dateBuilder =
+           dateBuilder ??
+           ((context, date) {
+             assert(date.debugCheckIsValidTimetableDate());
 
-              final timetableTheme = TimetableTheme.orDefaultOf(context);
-              DateIndicatorStyle? dateStyle;
-              if (date.firstDayOfMonth != month &&
-                  (style ?? timetableTheme.monthWidgetStyleProvider(month))
-                      .showDatesFromOtherMonthsAsDisabled) {
-                final original =
-                    timetableTheme.dateIndicatorStyleProvider(date);
-                dateStyle = original.copyWith(
-                  textStyle: original.textStyle.copyWith(
-                    color: context.theme.colorScheme.surface.disabledOnColor,
-                  ),
-                );
-              }
-              return DateIndicator(date, style: dateStyle);
-            });
+             final timetableTheme = TimetableTheme.orDefaultOf(context);
+             DateIndicatorStyle? dateStyle;
+             if (date.firstDayOfMonth != month &&
+                 (style ?? timetableTheme.monthWidgetStyleProvider(month))
+                     .showDatesFromOtherMonthsAsDisabled) {
+               final original = timetableTheme.dateIndicatorStyleProvider(date);
+               dateStyle = original.copyWith(
+                 textStyle: original.textStyle.copyWith(
+                   color: context.theme.colorScheme.surface.disabledOnColor,
+                 ),
+               );
+             }
+             return DateIndicator(date, style: dateStyle);
+           });
 
   final DateTime month;
 
@@ -73,7 +76,8 @@ class MonthWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = this.style ??
+    final style =
+        this.style ??
         TimetableTheme.orDefaultOf(context).monthWidgetStyleProvider(month);
 
     final firstDay = month.previousOrSame(style.startOfWeek);
@@ -113,8 +117,10 @@ class MonthWidget extends StatelessWidget {
             columnStart: day,
             rowStart: 0,
             child: Center(
-              child:
-                  weekDayBuilder(context, today + (day - today.weekday).days),
+              child: weekDayBuilder(
+                context,
+                today + (day - today.weekday).days,
+              ),
             ),
           ),
         GridPlacement(
@@ -186,11 +192,11 @@ class MonthWidgetStyle {
     removeIndividualWeekDecorations ??= true;
     return MonthWidgetStyle.raw(
       startOfWeek: startOfWeek ?? DateTime.monday,
-      weeksDecoration: weeksDecoration ??
+      weeksDecoration:
+          weeksDecoration ??
           (removeIndividualWeekDecorations
               ? BoxDecoration(
                   color: theme.colorScheme.brightness.contrastColor
-                      // TODO(JonasWanke): Remove when updating to Flutter 3.27
                       // ignore: deprecated_member_use
                       .withOpacity(0.05),
                   borderRadius: const BorderRadius.all(Radius.circular(4)),
@@ -240,12 +246,14 @@ class MonthWidgetStyle {
       startOfWeek: startOfWeek ?? this.startOfWeek,
       weeksDecoration: weeksDecoration ?? this.weeksDecoration,
       weeksPadding: weeksPadding ?? this.weeksPadding,
-      removeIndividualWeekDecorations: removeIndividualWeekDecorations ??
+      removeIndividualWeekDecorations:
+          removeIndividualWeekDecorations ??
           this.removeIndividualWeekDecorations,
       datePadding: datePadding ?? this.datePadding,
       showDatesFromOtherMonths:
           showDatesFromOtherMonths ?? this.showDatesFromOtherMonths,
-      showDatesFromOtherMonthsAsDisabled: showDatesFromOtherMonthsAsDisabled ??
+      showDatesFromOtherMonthsAsDisabled:
+          showDatesFromOtherMonthsAsDisabled ??
           this.showDatesFromOtherMonthsAsDisabled,
     );
   }

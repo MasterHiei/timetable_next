@@ -1,3 +1,4 @@
+// Changes from upstream: corrected controller replacement, listener ownership and deferred registration.
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -68,9 +69,13 @@ class _TimeZoomState extends State<TimeZoom>
     } else if (newController != _controller) {
       _controller!.removeListener(_onControllerChanged);
       _registration?.unregister();
+      // Re-register with the replacement even if the view height is unchanged.
+      _registration = null;
+    }
+    if (newController != _controller) {
+      newController.addListener(_onControllerChanged);
     }
     _controller = newController;
-    newController.addListener(_onControllerChanged);
 
     _scrollController?.dispose();
     _scrollController = null;
@@ -107,6 +112,7 @@ class _TimeZoomState extends State<TimeZoom>
           scheduleMicrotask(() {
             // This might update the controller's value, causing a rebuild
             //  which is not permitted during the build phase).
+            if (!mounted) return;
             if (_registration == null) {
               _registration = _controller!.registerClient(heightToReport);
             } else {
@@ -130,15 +136,15 @@ class _TimeZoomState extends State<TimeZoom>
             // uses `computeHitSlop`, which is half that amount.
             _ScaleGestureRecognizer:
                 GestureRecognizerFactoryWithHandlers<_ScaleGestureRecognizer>(
-              () => _ScaleGestureRecognizer(debugOwner: this),
-              (instance) {
-                instance
-                  ..onStart = _onScaleStart
-                  ..onUpdate = _onScaleUpdate
-                  ..onEnd = _onScaleEnd
-                  ..dragStartBehavior = DragStartBehavior.down;
-              },
-            ),
+                  () => _ScaleGestureRecognizer(debugOwner: this),
+                  (instance) {
+                    instance
+                      ..onStart = _onScaleStart
+                      ..onUpdate = _onScaleUpdate
+                      ..onEnd = _onScaleEnd
+                      ..dragStartBehavior = DragStartBehavior.down;
+                  },
+                ),
           },
           child: ClipRect(
             child: _NoDragSingleChildScrollView(
@@ -148,9 +154,11 @@ class _TimeZoomState extends State<TimeZoom>
                 builder: (context, _, child) {
                   // Layouts the child so only [_controller.maxRange] is
                   // visible.
-                  final innerChildHeight = _outerChildHeight *
+                  final innerChildHeight =
+                      _outerChildHeight *
                       (1.days / _controller!.maxRange.duration);
-                  final innerOffset = -innerChildHeight *
+                  final innerOffset =
+                      -innerChildHeight *
                       (_controller!.maxRange.startTime / 1.days);
 
                   return SizedBox(
@@ -197,8 +205,10 @@ class _TimeZoomState extends State<TimeZoom>
       // maximum possible value directly.
       newDuration = controller.actualMaxDuration;
     } else {
-      newDuration = (_initialRange!.duration * (1 / rawScale))
-          .coerceIn(controller.actualMinDuration, controller.actualMaxDuration);
+      newDuration = (_initialRange!.duration * (1 / rawScale)).coerceIn(
+        controller.actualMinDuration,
+        controller.actualMaxDuration,
+      );
     }
 
     final newFocus = _focusToDuration(details.localFocalPoint.dy, newDuration);
@@ -217,17 +227,24 @@ class _TimeZoomState extends State<TimeZoom>
     final velocity = details.velocity.pixelsPerSecond.dy;
     if (velocity.abs() < kMinFlingVelocity) return;
 
-    final frictionSimulation =
-        FrictionSimulation(_kDrag, _outerOffset, -velocity);
+    final frictionSimulation = FrictionSimulation(
+      _kDrag,
+      _outerOffset,
+      -velocity,
+    );
 
     const effectivelyMotionless = 10.0;
-    final finalTime = math.log(effectivelyMotionless / velocity.abs()) /
+    final finalTime =
+        math.log(effectivelyMotionless / velocity.abs()) /
         math.log(_kDrag / 100);
 
-    _animation =
-        Tween(begin: _outerOffset, end: frictionSimulation.finalX).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.decelerate),
-    );
+    _animation = Tween(begin: _outerOffset, end: frictionSimulation.finalX)
+        .animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.decelerate,
+          ),
+        );
     _animationController.duration = finalTime.seconds;
     _animation!.addListener(_onAnimate);
     _animationController.forward();
@@ -255,18 +272,17 @@ class _TimeZoomState extends State<TimeZoom>
     return range.startTime + _focusToDuration(focalPoint, range.duration);
   }
 
-  Duration _focusToDuration(
-    double focalPoint,
-    Duration visibleDuration,
-  ) =>
+  Duration _focusToDuration(double focalPoint, Duration visibleDuration) =>
       visibleDuration * (focalPoint / _parentHeight);
   void _setNewTimeRange(Duration startTime, Duration duration) {
     final actualStartTime = startTime.coerceIn(
       _controller!.maxRange.startTime,
       _controller!.maxRange.endTime - duration,
     );
-    _controller!.value =
-        TimeRange.fromStartAndDuration(actualStartTime, duration);
+    _controller!.value = TimeRange.fromStartAndDuration(
+      actualStartTime,
+      duration,
+    );
   }
 }
 
@@ -278,12 +294,11 @@ class _TimeZoomState extends State<TimeZoom>
 class _NoDragSingleChildScrollView extends SingleChildScrollView {
   /// Creates a box in which a single widget can be scrolled.
   const _NoDragSingleChildScrollView({super.controller, super.child})
-      : super(primary: false);
+    : super(primary: false);
 
   @override
   Widget build(BuildContext context) {
-    // This is really ugly and relies on the implementation of
-    // [SingleChildScrollView.build].
+    // This relies on SingleChildScrollView's build structure.
     final result = super.build(context) as Scrollable;
     return _Scrollable(
       dragStartBehavior: result.dragStartBehavior,
@@ -329,10 +344,7 @@ class _VerticalOverflowBox extends SingleChildRenderObjectWidget {
 
   @override
   _RenderVerticalOverflowBox createRenderObject(BuildContext context) {
-    return _RenderVerticalOverflowBox(
-      height: height,
-      offset: offset,
-    );
+    return _RenderVerticalOverflowBox(height: height, offset: offset);
   }
 
   @override
@@ -358,9 +370,9 @@ class _RenderVerticalOverflowBox extends RenderShiftedBox {
     RenderBox? child,
     required double height,
     required double offset,
-  })  : _height = height,
-        _offset = offset,
-        super(child);
+  }) : _height = height,
+       _offset = offset,
+       super(child);
 
   double get height => _height;
   double _height;
@@ -408,13 +420,9 @@ class _RenderVerticalOverflowBox extends RenderShiftedBox {
 
 // Copied and modified from https://github.com/flutter/flutter/blob/f4abaa0735eba4dfd8f33f73363911d63931fe03/packages/flutter/lib/src/gestures/scale.dart
 class _ScaleGestureRecognizer extends OneSequenceGestureRecognizer {
-  _ScaleGestureRecognizer({
-    super.debugOwner,
-    // ignore: unused_element
-    this.dragStartBehavior = DragStartBehavior.down,
-  });
+  _ScaleGestureRecognizer({super.debugOwner});
 
-  DragStartBehavior dragStartBehavior;
+  DragStartBehavior dragStartBehavior = DragStartBehavior.down;
   GestureScaleStartCallback? onStart;
   GestureScaleUpdateCallback? onUpdate;
   GestureScaleEndCallback? onEnd;
@@ -523,8 +531,9 @@ class _ScaleGestureRecognizer extends OneSequenceGestureRecognizer {
     for (final pointer in _pointerLocations.keys) {
       focalPoint += _pointerLocations[pointer]!;
     }
-    _currentFocalPoint =
-        count > 0 ? focalPoint / count.toDouble() : Offset.zero;
+    _currentFocalPoint = count > 0
+        ? focalPoint / count.toDouble()
+        : Offset.zero;
 
     // Span is the average deviation from focal point. Horizontal and vertical
     // spans are the average deviations from the focal point's horizontal and
@@ -549,26 +558,26 @@ class _ScaleGestureRecognizer extends OneSequenceGestureRecognizer {
     final count = _pointerLocations.keys.length;
     assert(_pointerQueue.length >= count);
 
-    /// In case of just one pointer registered, reconfigure [_initialLine]
+    // Reconfigure the initial line for a single pointer.
     if (count < 2) {
       _initialLine = _currentLine;
     } else if (_initialLine != null &&
         _initialLine!.pointerStartId == _pointerQueue.first &&
-        _initialLine!.pointerEndId == _pointerQueue.second) {
-      /// Rotation updated, set the [_currentLine]
+        _initialLine!.pointerEndId == _pointerQueue.elementAt(1)) {
+      // Update the current line as the pointers rotate.
       _currentLine = _LineBetweenPointers(
         pointerStartId: _pointerQueue.first,
         pointerStartLocation: _pointerLocations[_pointerQueue.first]!,
-        pointerEndId: _pointerQueue.second,
-        pointerEndLocation: _pointerLocations[_pointerQueue.second]!,
+        pointerEndId: _pointerQueue.elementAt(1),
+        pointerEndLocation: _pointerLocations[_pointerQueue.elementAt(1)]!,
       );
     } else {
-      /// A new rotation process is on the way, set the [_initialLine]
+      // Start a new rotation baseline.
       _initialLine = _LineBetweenPointers(
         pointerStartId: _pointerQueue.first,
         pointerStartLocation: _pointerLocations[_pointerQueue.first]!,
-        pointerEndId: _pointerQueue.second,
-        pointerEndLocation: _pointerLocations[_pointerQueue.second]!,
+        pointerEndId: _pointerQueue.elementAt(1),
+        pointerEndLocation: _pointerLocations[_pointerQueue.elementAt(1)]!,
       );
       _currentLine = null;
     }
@@ -590,7 +599,8 @@ class _ScaleGestureRecognizer extends OneSequenceGestureRecognizer {
           if (pixelsPerSecond.distanceSquared >
               kMaxFlingVelocity * kMaxFlingVelocity) {
             velocity = Velocity(
-              pixelsPerSecond: (pixelsPerSecond / pixelsPerSecond.distance) *
+              pixelsPerSecond:
+                  (pixelsPerSecond / pixelsPerSecond.distance) *
                   kMaxFlingVelocity,
             );
           }
@@ -758,7 +768,7 @@ class _LineBetweenPointers {
 /// the `TimeController`.
 class _ScrollController extends ScrollController {
   _ScrollController({required this.getOffset, required this.setOffset})
-      : super(initialScrollOffset: getOffset());
+    : super(initialScrollOffset: getOffset());
 
   final ValueGetter<double> getOffset;
   final ValueSetter<double> setOffset;

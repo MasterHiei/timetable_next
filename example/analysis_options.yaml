@@ -1,9 +1,7 @@
-include: package:supernova/lints.yaml
-
-linter:
-  rules:
-    use_key_in_widget_constructors: ignore
-
-dart_code_metrics:
-  rules:
-    prefer-extracting-callbacks: false
+# Changes from upstream: aligned example analysis with the package configuration.
+analyzer:
+  exclude:
+    - android/**
+    - ios/**
+    - web/**
+include: ../analysis_options.yaml

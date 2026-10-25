@@ -1,1 +1,15 @@
-include: package:supernova/lints.yaml
+# Changes from upstream: replaced the upstream lint configuration with flutter_lints and strict analysis.
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+
+linter:
+  rules:
+    # Preserve the inherited public constructors during the compatibility release.
+    use_key_in_widget_constructors: false

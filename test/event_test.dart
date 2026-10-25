@@ -1,6 +1,7 @@
-import 'package:test/test.dart';
-import 'package:timetable/src/event/event.dart';
-import 'package:timetable/src/utils.dart';
+// Changes from upstream: used the Flutter SDK test API while retaining event expectations.
+import 'package:flutter_test/flutter_test.dart';
+import 'package:timetable_next/src/event/event.dart';
+import 'package:timetable_next/src/utils.dart';
 
 void main() {
   group('TimetableEvent', () {
@@ -76,5 +77,5 @@ void main() {
 
 class _TestEvent extends Event {
   const _TestEvent(DateTime start, DateTime end)
-      : super(start: start, end: end);
+    : super(start: start, end: end);
 }

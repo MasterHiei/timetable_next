@@ -1,16 +1,21 @@
+// Changes from upstream: pointed debug and profile launches at the example application.
 {
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "example · debug",
-      "request": "launch",
-      "type": "dart"
-    },
-    {
-      "name": "example · profile",
+      "name": "Example (debug)",
       "request": "launch",
       "type": "dart",
-      "flutterMode": "profile"
+      "program": "${workspaceFolder}/example/lib/main.dart",
+      "cwd": "${workspaceFolder}/example"
+    },
+    {
+      "name": "Example (profile)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile",
+      "program": "${workspaceFolder}/example/lib/main.dart",
+      "cwd": "${workspaceFolder}/example"
     }
   ]
 }

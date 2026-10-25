@@ -1,3 +1,4 @@
+// Changes from upstream: preserved exclusive overlay ends and excluded zero-duration spans.
 import 'package:flutter/widgets.dart';
 
 import '../event/event.dart';
@@ -10,9 +11,9 @@ class TimeOverlay {
     required this.end,
     required this.widget,
     this.position = TimeOverlayPosition.behindEvents,
-  })  : assert(start.debugCheckIsValidTimetableTimeOfDay()),
-        assert(end.debugCheckIsValidTimetableTimeOfDay()),
-        assert(start < end);
+  }) : assert(start.debugCheckIsValidTimetableTimeOfDay()),
+       assert(end.debugCheckIsValidTimetableTimeOfDay()),
+       assert(start < end);
 
   final Duration start;
   final Duration end;
@@ -34,10 +35,8 @@ enum TimeOverlayPosition { behindEvents, inFrontOfEvents }
 ///
 /// * [emptyTimeOverlayProvider], which returns an empty list for all dates.
 /// * [mergeTimeOverlayProviders], which merges multiple [TimeOverlayProvider]s.
-typedef TimeOverlayProvider = List<TimeOverlay> Function(
-  BuildContext context,
-  DateTime date,
-);
+typedef TimeOverlayProvider =
+    List<TimeOverlay> Function(BuildContext context, DateTime date);
 
 // ignore: prefer_function_declarations_over_variables
 final TimeOverlayProvider emptyTimeOverlayProvider = (context, date) {
@@ -80,11 +79,12 @@ extension EventToTimeOverlay on Event {
   }) {
     assert(date.debugCheckIsValidTimetableDate());
 
-    if (!interval.intersects(date.fullDayInterval)) return null;
+    // Points have no paintable span; positive overlays retain exclusive ends.
+    if (start == end || !interval.intersects(date.fullDayInterval)) return null;
 
     return TimeOverlay(
       start: start.difference(date).coerceAtLeast(Duration.zero),
-      end: endInclusive.difference(date).coerceAtMost(1.days),
+      end: end.difference(date).coerceAtMost(1.days),
       widget: widget,
       position: position,
     );

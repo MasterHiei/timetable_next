@@ -1,3 +1,4 @@
+// Changes from upstream: preserved microsecond boundaries when adapting half-open event spans.
 import 'package:flutter/foundation.dart';
 
 import '../utils.dart';
@@ -9,10 +10,7 @@ import 'basic.dart';
 ///
 /// * [BasicEvent], which provides a basic implementation to get you started.
 abstract class Event with Diagnosticable {
-  const Event({
-    required this.start,
-    required this.end,
-  }) : assert(start <= end);
+  const Event({required this.start, required this.end}) : assert(start <= end);
 
   /// Start of the event; inclusive.
   final DateTime start;
@@ -39,7 +37,10 @@ abstract class Event with Diagnosticable {
 }
 
 extension EventExtension on Event {
-  DateTime get endInclusive => start == end ? end : end - 1.milliseconds;
+  // Adapt half-open spans to closed intervals at microsecond precision;
+  // zero-duration events remain points.
+  DateTime get endInclusive =>
+      start == end ? end : end - const Duration(microseconds: 1);
   Interval get interval => Interval(start, endInclusive);
   Duration get duration => end.difference(start);
 

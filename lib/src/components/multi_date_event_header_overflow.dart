@@ -1,3 +1,4 @@
+// Changes from upstream: removed obsolete SDK-upgrade guidance.
 import 'package:black_hole_flutter/black_hole_flutter.dart';
 import 'package:flutter/material.dart';
 
@@ -30,21 +31,21 @@ class MultiDateEventHeaderOverflow extends StatelessWidget {
     this.date, {
     super.key,
     required this.overflowCount,
-  })  : assert(date.debugCheckIsValidTimetableDate()),
-        assert(overflowCount >= 1);
+  }) : assert(date.debugCheckIsValidTimetableDate()),
+       assert(overflowCount >= 1);
 
   final DateTime date;
   final int overflowCount;
 
   @override
   Widget build(BuildContext context) {
-    final onMultiDateHeaderOverflowTap =
-        DefaultTimetableCallbacks.of(context)?.onMultiDateHeaderOverflowTap;
+    final onMultiDateHeaderOverflowTap = DefaultTimetableCallbacks.of(
+      context,
+    )?.onMultiDateHeaderOverflowTap;
     return BasicAllDayEventWidget(
       BasicEvent(
         id: date,
         title: TimetableLocalizations.of(context).allDayOverflow(overflowCount),
-        // TODO(JonasWanke): Remove when updating to Flutter 3.27
         // ignore: deprecated_member_use
         backgroundColor: context.theme.colorScheme.surface.withOpacity(0),
         start: date,

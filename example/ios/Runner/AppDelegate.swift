@@ -1,13 +1,18 @@
-import UIKit
+// Changes from upstream: registered plugins on the implicit engine used by the scene lifecycle.
 import Flutter
+import UIKit
 
-@UIApplicationMain
-@objc class AppDelegate: FlutterAppDelegate {
+@main
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    // The scene lifecycle creates the engine that owns plugin registration.
+    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
   }
 }

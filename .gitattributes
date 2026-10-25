@@ -1,0 +1,4 @@
+# Keep executable build scripts portable without changing the Windows checkout.
+example/android/gradlew text eol=lf
+example/android/gradlew.bat text eol=crlf
+example/android/gradle/wrapper/gradle-wrapper.jar -text

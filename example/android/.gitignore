@@ -1,13 +1,5 @@
-gradle-wrapper.jar
-/.gradle
-/captures/
-/gradlew
-/gradlew.bat
-/local.properties
-GeneratedPluginRegistrant.java
-
-# Remember to never publicly share your keystore.
-# See https://flutter.dev/to/reference-keystore
+# Changes from upstream: kept signing material excluded while versioning the Gradle bootstrap.
+# Local signing material; generated build state is covered by the root rules.
 key.properties
 **/*.keystore
 **/*.jks

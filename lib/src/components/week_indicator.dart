@@ -1,3 +1,4 @@
+// Changes from upstream: used collection minimum selection while preserving label tie behavior.
 import 'package:black_hole_flutter/black_hole_flutter.dart';
 import 'package:flutter/material.dart';
 
@@ -39,22 +40,21 @@ class WeekIndicator extends StatelessWidget {
     this.alwaysUseNarrowestVariant = false,
     this.onTap,
     this.style,
-  })  : assert(date.debugCheckIsValidTimetableDate()),
-        week = date.week;
+  }) : assert(date.debugCheckIsValidTimetableDate()),
+       week = date.week;
   static Widget forController(
     DateController? controller, {
     Key? key,
     bool alwaysUseNarrowestVariant = false,
     VoidCallback? onTap,
     WeekIndicatorStyle? style,
-  }) =>
-      _WeekIndicatorForController(
-        controller,
-        key: key,
-        alwaysUseNarrowestVariant: alwaysUseNarrowestVariant,
-        onTap: onTap,
-        style: style,
-      );
+  }) => _WeekIndicatorForController(
+    controller,
+    key: key,
+    alwaysUseNarrowestVariant: alwaysUseNarrowestVariant,
+    onTap: onTap,
+    style: style,
+  );
 
   final Week week;
   final bool alwaysUseNarrowestVariant;
@@ -63,7 +63,8 @@ class WeekIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = this.style ??
+    final style =
+        this.style ??
         TimetableTheme.orDefaultOf(context).weekIndicatorStyleProvider(week);
     final defaultOnTap = DefaultTimetableCallbacks.of(context)?.onWeekTap;
 
@@ -93,12 +94,14 @@ class WeekIndicator extends StatelessWidget {
   TextStyle _getEffectiveTextStyle(BuildContext context, TextStyle textStyle) {
     var effectiveTextStyle = textStyle;
     if (effectiveTextStyle.inherit) {
-      effectiveTextStyle =
-          context.defaultTextStyle.style.merge(effectiveTextStyle);
+      effectiveTextStyle = context.defaultTextStyle.style.merge(
+        effectiveTextStyle,
+      );
     }
     if (MediaQuery.boldTextOf(context)) {
-      effectiveTextStyle = effectiveTextStyle
-          .merge(const TextStyle(fontWeight: FontWeight.bold));
+      effectiveTextStyle = effectiveTextStyle.merge(
+        const TextStyle(fontWeight: FontWeight.bold),
+      );
     }
     return effectiveTextStyle;
   }
@@ -224,11 +227,12 @@ class _RenderWeekIndicatorText extends RenderBox {
       painter.layout();
     }
 
-    TextPainter narrowestPainter() => _labelPainters.minBy((it) => it.width)!;
+    TextPainter narrowestPainter() => minBy(_labelPainters, (it) => it.width)!;
     if (alwaysUseNarrowestVariant) {
       _labelPainter = narrowestPainter();
     } else {
-      _labelPainter = _labelPainters
+      _labelPainter =
+          _labelPainters
               .where(
                 (it) =>
                     constraints.minWidth <= it.size.width &&
@@ -265,18 +269,20 @@ class WeekIndicatorStyle {
     final localizations = TimetableLocalizations.of(context);
     return WeekIndicatorStyle.raw(
       tooltip: tooltip ?? localizations.weekOfYear(week),
-      decoration: decoration ??
+      decoration:
+          decoration ??
           BoxDecoration(
-            // TODO(JonasWanke): Remove when updating to Flutter 3.27
             // ignore: deprecated_member_use
             color: colorScheme.brightness.contrastColor.withOpacity(0.05),
             borderRadius: const BorderRadius.all(Radius.circular(4)),
           ),
       padding:
           padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      textStyle: textStyle ??
-          context.textTheme.bodyMedium!
-              .copyWith(color: colorScheme.surface.mediumEmphasisOnColor),
+      textStyle:
+          textStyle ??
+          context.textTheme.bodyMedium!.copyWith(
+            color: colorScheme.surface.mediumEmphasisOnColor,
+          ),
       labels: labels ?? localizations.weekLabels(week),
     );
   }
@@ -350,8 +356,7 @@ class _WeekIndicatorForController extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: (controller ?? DefaultDateController.of(context)!)
-          .date
+      valueListenable: (controller ?? DefaultDateController.of(context)!).date
           .map((it) => it.week),
       builder: (context, week, _) => WeekIndicator(
         week,

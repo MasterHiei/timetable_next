@@ -1,3 +1,4 @@
+# Changes from upstream: updated the example title and Flutter bootstrap script.
 <!DOCTYPE html>
 <html>
 
@@ -10,23 +11,16 @@
 
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="timetable_example">
+  <meta name="apple-mobile-web-app-title" content="timetable-next example">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <link rel="icon" type="image/png" href="favicon.png" />
 
-  <title>timetable_example</title>
+  <title>timetable-next example</title>
 </head>
 
 <body>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('flutter-first-frame', function () {
-        navigator.serviceWorker.register('flutter_service_worker.js');
-      });
-    }
-  </script>
-  <script src="main.dart.js" type="application/javascript"></script>
+  <script src="flutter_bootstrap.js" async></script>
 </body>
 
 </html>

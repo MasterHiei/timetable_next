@@ -1,3 +1,4 @@
+// Changes from upstream: replaced Dartx helpers and preserved microsecond date/interval semantics.
 import 'package:dart_date/dart_date.dart' show Interval;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Interval;
@@ -6,17 +7,6 @@ import 'week.dart';
 
 export 'package:collection/collection.dart';
 export 'package:dart_date/dart_date.dart' show Interval;
-export 'package:dartx/dartx.dart'
-    show
-        ComparableCoerceAtLeastExtension,
-        ComparableCoerceAtMostExtension,
-        ComparableCoerceInExtension,
-        IntRangeToExtension,
-        IterableMapNotNull,
-        IterableMinBy,
-        IterableSecondItem,
-        NumCoerceAtLeastExtension,
-        NumCoerceAtMostExtension;
 
 export 'utils/listenable.dart';
 export 'utils/size_reporting_widget.dart';
@@ -28,15 +18,33 @@ extension DoubleTimetable on double {
       coerceAtLeast(min).coerceAtMost(max);
 }
 
-typedef MonthWidgetBuilder = Widget Function(
-  BuildContext context,
-  DateTime month,
-);
+// Keep these internal adapters local; the public entry point does not export them.
+extension ComparableTimetable<T extends Comparable<T>> on T {
+  T coerceAtLeast(T minimum) => compareTo(minimum) < 0 ? minimum : this;
+  T coerceAtMost(T maximum) => compareTo(maximum) > 0 ? maximum : this;
+  T coerceIn(T minimum, T maximum) {
+    if (minimum.compareTo(maximum) > 0) throw ArgumentError('Empty range');
+    return coerceAtLeast(minimum).coerceAtMost(maximum);
+  }
+}
+
+extension IntTimetable on int {
+  int coerceAtLeast(int minimum) => this < minimum ? minimum : this;
+  int coerceAtMost(int maximum) => this > maximum ? maximum : this;
+  Iterable<int> rangeTo(int end) sync* {
+    final step = this <= end ? 1 : -1;
+    for (var value = this; ; value += step) {
+      yield value;
+      if (value == end) return;
+    }
+  }
+}
+
+typedef MonthWidgetBuilder =
+    Widget Function(BuildContext context, DateTime month);
 typedef WeekWidgetBuilder = Widget Function(BuildContext context, Week week);
-typedef DateWidgetBuilder = Widget Function(
-  BuildContext context,
-  DateTime date,
-);
+typedef DateWidgetBuilder =
+    Widget Function(BuildContext context, DateTime date);
 
 extension DateTimeTimetable on DateTime {
   static DateTime date(int year, [int month = 1, int day = 1]) {
@@ -69,17 +77,24 @@ extension DateTimeTimetable on DateTime {
       minute: minute ?? this.minute,
       second: second ?? this.second,
       millisecond: millisecond ?? this.millisecond,
+      microsecond: microsecond,
       isUtc: isUtc ?? this.isUtc,
     );
   }
 
   Duration get timeOfDay => difference(atStartOfDay);
 
-  DateTime get atStartOfDay =>
-      copyWith(hour: 0, minute: 0, second: 0, millisecond: 0);
+  // Reset all subsecond fields; copyWith intentionally preserves microseconds.
+  DateTime get atStartOfDay => InternalDateTimeTimetable.create(
+    year: year,
+    month: this.month,
+    day: day,
+    isUtc: isUtc,
+  );
   bool get isAtStartOfDay => this == atStartOfDay;
-  DateTime get atEndOfDay =>
-      copyWith(hour: 23, minute: 59, second: 59, millisecond: 999);
+  DateTime get atEndOfDay => atStartOfDay
+      .add(const Duration(days: 1))
+      .subtract(const Duration(microseconds: 1));
   bool get isAtEndOfDay => this == atEndOfDay;
 
   static DateTime now() {
@@ -163,9 +178,7 @@ extension DateTimeTimetable on DateTime {
 }
 
 class DateDiagnosticsProperty extends DiagnosticsProperty<DateTime> {
-  /// Create a diagnostics property for [Color].
-  ///
-  /// The [showName], [style], and [level] arguments must not be null.
+  /// Diagnostic representation of a timetable date.
   DateDiagnosticsProperty(
     String super.name,
     super.value, {
@@ -196,10 +209,20 @@ extension InternalDateTimeTimetable on DateTime {
     int minute = 0,
     int second = 0,
     int millisecond = 0,
+    int microsecond = 0,
     bool isUtc = true,
   }) {
     final constructor = isUtc ? DateTime.utc : DateTime.new;
-    return constructor(year, month, day, hour, minute, second, millisecond);
+    return constructor(
+      year,
+      month,
+      day,
+      hour,
+      minute,
+      second,
+      millisecond,
+      microsecond,
+    );
   }
 
   DateTime operator +(Duration duration) => add(duration);
@@ -211,8 +234,10 @@ extension InternalDateTimeTimetable on DateTime {
   bool operator >(DateTime other) => isAfter(other);
   bool operator >=(DateTime other) => isAfter(other) || isAtSameMomentAs(other);
 
-  static final List<int> innerDateHours =
-      List.generate(Duration.hoursPerDay - 1, (i) => i + 1);
+  static final List<int> innerDateHours = List.generate(
+    Duration.hoursPerDay - 1,
+    (i) => i + 1,
+  );
 }
 
 extension NullableDateTimeTimetable on DateTime? {
@@ -382,10 +407,8 @@ extension IntervalTimetable on Interval {
   bool intersects(Interval other) => start <= other.end && end >= other.start;
 
   Interval get dateInterval {
-    final interval = Interval(
-      start.atStartOfDay,
-      (end - 1.milliseconds).atEndOfDay,
-    );
+    // The interval end is already inclusive; subtracting again loses midnight.
+    final interval = Interval(start.atStartOfDay, end.atEndOfDay);
     assert(interval.debugCheckIsValidTimetableDateInterval());
     return interval;
   }

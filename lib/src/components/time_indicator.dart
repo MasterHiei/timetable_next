@@ -1,7 +1,4 @@
-// TODO(JonasWanke): Remove the import when upgrading Flutter
-// ignore: unnecessary_import
-import 'dart:ui';
-
+// Changes from upstream: removed an obsolete import and SDK-upgrade workaround.
 import 'package:black_hole_flutter/black_hole_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -22,11 +19,8 @@ import 'time_indicators.dart';
 /// * [TimetableTheme] (and [TimetableConfig]), which provide styles to
 ///   descendant Timetable widgets.
 class TimeIndicator extends StatelessWidget {
-  TimeIndicator({
-    super.key,
-    required this.time,
-    this.style,
-  }) : assert(time.debugCheckIsValidTimetableTimeOfDay());
+  TimeIndicator({super.key, required this.time, this.style})
+    : assert(time.debugCheckIsValidTimetableTimeOfDay());
 
   static String formatHour(Duration time) => _format(DateFormat.j(), time);
   static String formatHourMinute(Duration time) =>
@@ -50,7 +44,8 @@ class TimeIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = this.style ??
+    final style =
+        this.style ??
         TimetableTheme.orDefaultOf(context).timeIndicatorStyleProvider(time);
 
     return Text(style.label, style: style.textStyle);
@@ -78,16 +73,19 @@ class TimeIndicatorStyle {
     final proportionalFiguresFeature =
         const FontFeature.proportionalFigures().value;
     return TimeIndicatorStyle.raw(
-      textStyle: textStyle ??
+      textStyle:
+          textStyle ??
           bodySmall.copyWith(
             color: theme.colorScheme.surface.disabledOnColor,
             fontFeatures: [
-              ...?bodySmall.fontFeatures
-                  ?.where((it) => it.value != proportionalFiguresFeature),
+              ...?bodySmall.fontFeatures?.where(
+                (it) => it.value != proportionalFiguresFeature,
+              ),
               const FontFeature.tabularFigures(),
             ],
           ),
-      label: label ??
+      label:
+          label ??
           () {
             context.dependOnTimetableLocalizations();
             return alwaysUse24HourFormat
@@ -97,10 +95,7 @@ class TimeIndicatorStyle {
     );
   }
 
-  const TimeIndicatorStyle.raw({
-    required this.textStyle,
-    required this.label,
-  });
+  const TimeIndicatorStyle.raw({required this.textStyle, required this.label});
 
   final TextStyle textStyle;
   final String label;

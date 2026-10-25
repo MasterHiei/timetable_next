@@ -1,3 +1,4 @@
+// Changes from upstream: corrected the child-position documentation.
 import 'dart:math' as math;
 
 import 'package:black_hole_flutter/black_hole_flutter.dart';
@@ -149,10 +150,10 @@ class TimeIndicatorsChild extends ParentDataWidget<_TimeIndicatorParentData> {
     required this.time,
     this.alignment = Alignment.centerRight,
     required super.child,
-  })  : assert(time.debugCheckIsValidTimetableTimeOfDay()),
-        super(key: ValueKey(time));
+  }) : assert(time.debugCheckIsValidTimetableTimeOfDay()),
+       super(key: ValueKey(time));
 
-  /// The time of day that this widget positioned next to.
+  /// The time of day that this widget is positioned next to.
   final Duration time;
 
   /// How to align the widget to the [time].
@@ -188,7 +189,7 @@ class _TimeIndicatorsLayout extends RenderBox
         ContainerRenderObjectMixin<RenderBox, _TimeIndicatorParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, _TimeIndicatorParentData> {
   _TimeIndicatorsLayout({required TextDirection textDirection})
-      : _textDirection = textDirection;
+    : _textDirection = textDirection;
 
   TextDirection _textDirection;
   TextDirection get textDirection => _textDirection;

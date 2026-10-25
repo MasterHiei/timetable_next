@@ -1,3 +1,4 @@
+// Changes from upstream: fixed animation completion, activity notification, reentry and disposal.
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -9,7 +10,7 @@ import 'visible_date_range.dart';
 
 /// Controls the visible dates in Timetable widgets.
 ///
-/// You can read (and listen to) the currently visible dates via [date].
+/// Listen to [date] for the current date and [visibleDates] for the visible interval.
 ///
 /// To programmatically change the visible dates, use any of the following
 /// functions:
@@ -19,18 +20,16 @@ import 'visible_date_range.dart';
 ///
 /// You can also get and update the [VisibleDateRange] via [visibleRange].
 class DateController extends ValueNotifier<DatePageValueWithScrollActivity> {
-  DateController({
-    DateTime? initialDate,
-    VisibleDateRange? visibleRange,
-  })  : assert(initialDate.debugCheckIsValidTimetableDate()),
-        // We set the correct value in the body below.
-        super(
-          DatePageValueWithScrollActivity(
-            visibleRange ?? VisibleDateRange.week(),
-            0,
-            const IdleDateScrollActivity(),
-          ),
-        ) {
+  DateController({DateTime? initialDate, VisibleDateRange? visibleRange})
+    : assert(initialDate.debugCheckIsValidTimetableDate()),
+      // We set the correct value in the body below.
+      super(
+        DatePageValueWithScrollActivity(
+          visibleRange ?? VisibleDateRange.week(),
+          0,
+          const IdleDateScrollActivity(),
+        ),
+      ) {
     // The correct value is set via the listener when we assign to our value.
     _date = ValueNotifier(DateTimeTimetable.dateFromPage(0));
     addListener(() => _date.value = value.date);
@@ -51,7 +50,7 @@ class DateController extends ValueNotifier<DatePageValueWithScrollActivity> {
 
   VisibleDateRange get visibleRange => value.visibleRange;
   set visibleRange(VisibleDateRange visibleRange) {
-    cancelAnimation();
+    if (!_beginOperation()) return;
     value = value.copyWithActivity(
       page: visibleRange.getTargetPageForFocus(value.page),
       visibleRange: visibleRange,
@@ -98,9 +97,11 @@ class DateController extends ValueNotifier<DatePageValueWithScrollActivity> {
     Duration duration = const Duration(milliseconds: 200),
     required TickerProvider vsync,
   }) async {
-    cancelAnimation();
-    final controller =
-        AnimationController(debugLabel: 'DateController', vsync: vsync);
+    if (!_beginOperation()) return;
+    final controller = AnimationController(
+      debugLabel: 'DateController',
+      vsync: vsync,
+    );
     _animationController = controller;
 
     final previousPage = value.page;
@@ -115,13 +116,17 @@ class DateController extends ValueNotifier<DatePageValueWithScrollActivity> {
       );
     });
 
-    controller.addStatusListener((status) {
-      if (status != AnimationStatus.completed) return;
-      controller.dispose();
-      _animationController = null;
-    });
-
-    await controller.animateTo(1, duration: duration, curve: curve);
+    try {
+      await controller.animateTo(1, duration: duration, curve: curve).orCancel;
+    } on TickerCanceled {
+      // Interruption completes the public future without reaching the target.
+    } finally {
+      // A replacement animation owns its own controller and must survive cleanup.
+      if (identical(_animationController, controller)) {
+        _animationController = null;
+        controller.dispose();
+      }
+    }
   }
 
   void jumpToToday() => jumpTo(DateTimeTimetable.today());
@@ -131,28 +136,51 @@ class DateController extends ValueNotifier<DatePageValueWithScrollActivity> {
   }
 
   void jumpToPage(double page) {
-    cancelAnimation();
+    if (!_beginOperation()) return;
     value = value.copyWithActivity(
       page: value.visibleRange.getTargetPageForFocus(page),
       activity: const IdleDateScrollActivity(),
     );
   }
 
-  void cancelAnimation() {
-    if (_animationController == null) return;
+  int _operation = 0;
 
-    value = value.copyWithActivity(activity: const IdleDateScrollActivity());
-    _animationController!.dispose();
+  // Idle notifications can start a newer operation synchronously.
+  bool _beginOperation() {
+    assert(!_isDisposed);
+    if (_isDisposed) return false;
+    final operation = ++_operation;
+    _cancelAnimation();
+    return operation == _operation && !_isDisposed;
+  }
+
+  void cancelAnimation() {
+    _operation++;
+    _cancelAnimation();
+  }
+
+  void _cancelAnimation({bool notifyIdle = true}) {
+    final controller = _animationController;
+    if (controller == null) return;
+    // Detach before notifying listeners, which can start another animation.
     _animationController = null;
+    controller.dispose();
+    if (notifyIdle) {
+      value = value.copyWithActivity(activity: const IdleDateScrollActivity());
+    }
   }
 
   bool _isDisposed = false;
   bool get isDisposed => _isDisposed;
   @override
   void dispose() {
-    _date.dispose();
-    super.dispose();
+    assert(!_isDisposed);
     _isDisposed = true;
+    _operation++;
+    _cancelAnimation(notifyIdle: false);
+    _date.dispose();
+    _visibleDates.dispose();
+    super.dispose();
   }
 }
 
@@ -208,6 +236,7 @@ class DatePageValue with Diagnosticable {
   @override
   bool operator ==(Object other) {
     return other is DatePageValue &&
+        runtimeType == other.runtimeType &&
         visibleRange == other.visibleRange &&
         page == other.page;
   }
@@ -229,6 +258,16 @@ class DatePageValueWithScrollActivity extends DatePageValue {
   );
 
   final DateScrollActivity activity;
+
+  // Activity transitions must notify listeners even when the page is unchanged.
+  @override
+  int get hashCode => Object.hash(super.hashCode, activity);
+
+  @override
+  bool operator ==(Object other) =>
+      other is DatePageValueWithScrollActivity &&
+      super == other &&
+      activity == other.activity;
 
   DatePageValueWithScrollActivity copyWithActivity({
     VisibleDateRange? visibleRange,

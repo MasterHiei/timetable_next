@@ -1,3 +1,4 @@
+// Changes from upstream: clarified ancestor callback override documentation.
 import 'package:flutter/widgets.dart';
 
 import 'components/date_content.dart';
@@ -128,7 +129,7 @@ class TimetableCallbacks {
 
 /// Provides the default callbacks for Timetable widgets below it.
 ///
-/// [DefaultTimetableCallbacks] widgets above this on are overridden.
+/// Overrides callbacks provided by ancestor [DefaultTimetableCallbacks] widgets.
 class DefaultTimetableCallbacks extends InheritedWidget {
   const DefaultTimetableCallbacks({
     super.key,

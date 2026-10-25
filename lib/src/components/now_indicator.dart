@@ -1,7 +1,7 @@
+// Changes from upstream: made scheduled repaint work cancellable when listeners detach.
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:async/async.dart';
 import 'package:black_hole_flutter/black_hole_flutter.dart';
 import 'package:flutter/material.dart';
 
@@ -23,11 +23,7 @@ import '../utils.dart';
 /// * [TimetableTheme] (and [TimetableConfig]), which provide styles to
 ///   descendant Timetable widgets.
 class NowIndicator extends StatelessWidget {
-  const NowIndicator({
-    super.key,
-    this.style,
-    this.child,
-  });
+  const NowIndicator({super.key, this.style, this.child});
 
   final NowIndicatorStyle? style;
   final Widget? child;
@@ -182,7 +178,7 @@ class EmptyNowIndicatorShape extends NowIndicatorShape {
 /// * [EmptyNowIndicatorShape], which draws nothing.
 class CircleNowIndicatorShape extends NowIndicatorShape {
   CircleNowIndicatorShape({required this.color, this.radius = 4})
-      : _paint = Paint()..color = color;
+    : _paint = Paint()..color = color;
 
   final Color color;
   final double radius;
@@ -230,11 +226,11 @@ class CircleNowIndicatorShape extends NowIndicatorShape {
 ///
 /// See also:
 ///
-/// * [TriangleNowIndicatorShape], which draws a small triangle.
+/// * [CircleNowIndicatorShape], which draws a small circle.
 /// * [EmptyNowIndicatorShape], which draws nothing.
 class TriangleNowIndicatorShape extends NowIndicatorShape {
   TriangleNowIndicatorShape({required this.color, this.size = 8})
-      : _paint = Paint()..color = color;
+    : _paint = Paint()..color = color;
 
   final Color color;
   final double size;
@@ -290,23 +286,22 @@ class _NowIndicatorPainter extends CustomPainter {
     required DateController controller,
     required NowIndicatorStyle style,
     required double devicePixelRatio,
-  }) =>
-      _NowIndicatorPainter._(
-        controller: controller,
-        style: style,
-        devicePixelRatio: devicePixelRatio,
-        repaintNotifier: ValueNotifier(DateTimeTimetable.now()),
-      );
+  }) => _NowIndicatorPainter._(
+    controller: controller,
+    style: style,
+    devicePixelRatio: devicePixelRatio,
+    repaintNotifier: ValueNotifier(DateTimeTimetable.now()),
+  );
   _NowIndicatorPainter._({
     required this.controller,
     required this.style,
     required this.devicePixelRatio,
     required ValueNotifier<DateTime> repaintNotifier,
-  })  : _paint = Paint()
-          ..color = style.lineColor
-          ..strokeWidth = style.lineWidth,
-        _repaintNotifier = repaintNotifier,
-        super(repaint: Listenable.merge([controller, repaintNotifier]));
+  }) : _paint = Paint()
+         ..color = style.lineColor
+         ..strokeWidth = style.lineWidth,
+       _repaintNotifier = repaintNotifier,
+       super(repaint: Listenable.merge([controller, repaintNotifier]));
 
   final DateController controller;
   final Paint _paint;
@@ -315,7 +310,7 @@ class _NowIndicatorPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    unawaited(_repaint?.cancel());
+    _repaint?.cancel();
     _repaint = null;
 
     final pageValue = controller.value;
@@ -340,21 +335,15 @@ class _NowIndicatorPainter extends CustomPainter {
     // pixel.
     final maxDistance = 0.5 / devicePixelRatio;
     final delay = 1.days * (maxDistance / size.height);
-    _repaint = CancelableOperation.fromFuture(
-      Future<void>.delayed(
-        delay,
-        () {
-          // [ChangeNotifier.notifyListeners] is protected, so we use a
-          // [ValueNotifier] and always set a different time.
-          _repaintNotifier.value = DateTimeTimetable.now();
-        },
-      ),
-    );
+    // Detaching must cancel the timer itself, not just a wrapper future.
+    _repaint = Timer(delay, () {
+      _repaintNotifier.value = DateTimeTimetable.now();
+    });
   }
 
   int _activeListenerCount = 0;
   final ValueNotifier<DateTime> _repaintNotifier;
-  CancelableOperation<void>? _repaint;
+  Timer? _repaint;
 
   @override
   void addListener(VoidCallback listener) {
@@ -366,7 +355,7 @@ class _NowIndicatorPainter extends CustomPainter {
   void removeListener(VoidCallback listener) {
     _activeListenerCount--;
     if (_activeListenerCount == 0) {
-      unawaited(_repaint?.cancel());
+      _repaint?.cancel();
       _repaint = null;
     }
     super.removeListener(listener);

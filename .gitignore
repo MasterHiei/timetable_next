@@ -1,79 +1,62 @@
+# Changes from upstream: centralized generated-state and signing exclusions while keeping build bootstrap files.
+# Local environments and editor state
 .direnv/
-
-pubspec.lock
-
-# Miscellaneous
-*.class
-*.log
-*.pyc
+.fvm/
+.env
+.env.*
+!.env.example
+!.env.template
+.idea/
+*.iml
 *.swp
 .DS_Store
-.atom/
-.buildlog/
-.history
-.svn/
+# Shared .vscode configuration is intentionally versioned.
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
+# Dart and Flutter generated state
 .dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
 .packages
 .pub-cache/
 .pub/
+.flutter-plugins
+.flutter-plugins-dependencies
 build/
+coverage/
+.build/
+.widget_preview/
+**/doc/api/
+# This repository publishes a library; the example application keeps its lockfile.
+/pubspec.lock
 
-# Android related
-**/android/**/gradle-wrapper.jar
-**/android/.gradle
+# Android generated state; Gradle wrapper sources remain versioned.
+**/android/.gradle/
 **/android/captures/
-**/android/gradlew
-**/android/gradlew.bat
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 
-# iOS/XCode related
+# iOS signing material (never publish local credentials/profiles)
+**/ios/**/*.p12
+**/ios/**/*.p8
+**/ios/**/*.mobileprovision
+**/ios/**/*.provisionprofile
+
+# iOS generated state and user-specific Xcode files
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/.generated/
+**/ios/DerivedData/
+**/ios/**/xcuserdata/
+**/ios/**/*.xcuserstate
 **/ios/**/*.mode1v3
 **/ios/**/*.mode2v3
-**/ios/**/*.moved-aside
 **/ios/**/*.pbxuser
 **/ios/**/*.perspectivev3
-**/ios/**/*sync/
-**/ios/**/.sconsign.dblite
-**/ios/**/.tags*
-**/ios/**/.vagrant/
-**/ios/**/DerivedData/
-**/ios/**/Icon?
-**/ios/**/Pods/
-**/ios/**/.symlinks/
-**/ios/**/profile
-**/ios/**/xcuserdata
-**/ios/.generated/
-**/ios/Flutter/App.framework
-**/ios/Flutter/Flutter.framework
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/App.framework/
+**/ios/Flutter/Flutter.framework/
 **/ios/Flutter/Flutter.podspec
 **/ios/Flutter/Generated.xcconfig
 **/ios/Flutter/app.flx
 **/ios/Flutter/app.zip
 **/ios/Flutter/flutter_assets/
 **/ios/Flutter/flutter_export_environment.sh
-**/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
-
-# Exceptions to above rules.
-!**/ios/**/default.mode1v3
-!**/ios/**/default.mode2v3
-!**/ios/**/default.pbxuser
-!**/ios/**/default.perspectivev3
-!/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
