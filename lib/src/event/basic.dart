@@ -151,10 +151,7 @@ class BasicAllDayEventWidget extends StatelessWidget {
           radii: style.radii,
         ),
         child: Material(
-          shape: AllDayEventBorder(
-            info: info,
-            radii: style.radii,
-          ),
+          shape: AllDayEventBorder(info: info, radii: style.radii),
           clipBehavior: Clip.antiAlias,
           color: Colors.transparent,
           child: InkWell(
@@ -189,14 +186,16 @@ class BasicAllDayEventWidgetStyle {
   }) {
     return BasicAllDayEventWidgetStyle.raw(
       margin: margin ?? const EdgeInsets.all(2),
-      radii: radii ??
+      radii:
+          radii ??
           const AllDayEventBorderRadii(
             cornerRadius: BorderRadius.all(Radius.circular(4)),
             leftTipRadius: 4,
             rightTipRadius: 4,
           ),
       padding: padding ?? const EdgeInsets.only(left: 4, top: 2, bottom: 2),
-      textStyle: textStyle ??
+      textStyle:
+          textStyle ??
           context.theme.textTheme.bodyMedium!.copyWith(
             fontSize: 14,
             color: event.backgroundColor.highEmphasisOnColor,

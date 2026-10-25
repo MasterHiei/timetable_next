@@ -7,14 +7,13 @@ import 'controller.dart';
 @immutable
 class TimeRange {
   TimeRange(this.startTime, this.endTime)
-      : assert(startTime.debugCheckIsValidTimetableTimeOfDay()),
-        assert(endTime.debugCheckIsValidTimetableTimeOfDay()),
-        assert(startTime <= endTime);
+    : assert(startTime.debugCheckIsValidTimetableTimeOfDay()),
+      assert(endTime.debugCheckIsValidTimetableTimeOfDay()),
+      assert(startTime <= endTime);
   factory TimeRange.fromStartAndDuration(
     Duration startTime,
     Duration duration,
-  ) =>
-      TimeRange(startTime, startTime + duration);
+  ) => TimeRange(startTime, startTime + duration);
 
   factory TimeRange.centeredAround(
     Duration center,

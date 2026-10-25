@@ -54,11 +54,13 @@ class _TimetableConfigState<E extends Event> extends State<TimetableConfig<E>> {
   @override
   Widget build(BuildContext context) {
     Widget child = DefaultTimetableCallbacks(
-      callbacks: widget.callbacks ??
+      callbacks:
+          widget.callbacks ??
           DefaultTimetableCallbacks.of(context) ??
           const TimetableCallbacks(),
       child: TimetableTheme(
-        data: widget.theme ??
+        data:
+            widget.theme ??
             TimetableTheme.of(context) ??
             TimetableThemeData(context),
         child: widget.child,
@@ -66,14 +68,16 @@ class _TimetableConfigState<E extends Event> extends State<TimetableConfig<E>> {
     );
 
     child = DefaultTimeOverlayProvider(
-      overlayProvider: widget.timeOverlayProvider ??
+      overlayProvider:
+          widget.timeOverlayProvider ??
           DefaultTimeOverlayProvider.of(context) ??
           emptyTimeOverlayProvider,
       child: child,
     );
 
     child = DefaultEventProvider<E>(
-      eventProvider: widget.eventProvider ??
+      eventProvider:
+          widget.eventProvider ??
           DefaultEventProvider.of<E>(context) ??
           (_) => [],
       child: DefaultEventBuilder(
@@ -85,11 +89,13 @@ class _TimetableConfigState<E extends Event> extends State<TimetableConfig<E>> {
     );
 
     return DefaultDateController(
-      controller: widget.dateController ??
+      controller:
+          widget.dateController ??
           DefaultDateController.of(context) ??
           _dateController,
       child: DefaultTimeController(
-        controller: widget.timeController ??
+        controller:
+            widget.timeController ??
             DefaultTimeController.of(context) ??
             _timeController,
         child: child,

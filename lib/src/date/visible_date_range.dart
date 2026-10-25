@@ -104,16 +104,17 @@ class DaysVisibleDateRange extends VisibleDateRange {
     DateTime? alignmentDate,
     this.minDate,
     this.maxDate,
-  })  : alignmentDate = alignmentDate ?? DateTimeTimetable.today(),
-        assert(minDate.debugCheckIsValidTimetableDate()),
-        assert(maxDate.debugCheckIsValidTimetableDate()),
-        assert(minDate == null || maxDate == null || minDate <= maxDate),
-        super(visibleDayCount: visibleDayCount, canScroll: true) {
+  }) : alignmentDate = alignmentDate ?? DateTimeTimetable.today(),
+       assert(minDate.debugCheckIsValidTimetableDate()),
+       assert(maxDate.debugCheckIsValidTimetableDate()),
+       assert(minDate == null || maxDate == null || minDate <= maxDate),
+       super(visibleDayCount: visibleDayCount, canScroll: true) {
     minPage = minDate == null ? null : getTargetPageForFocus(minDate!.page);
     maxPage = maxDate == null
         ? null
-        : _getMinimumPageForFocus(maxDate!.page)
-            .coerceAtLeast(minPage ?? double.negativeInfinity);
+        : _getMinimumPageForFocus(
+            maxDate!.page,
+          ).coerceAtLeast(minPage ?? double.negativeInfinity);
   }
 
   final int swipeRange;
@@ -132,8 +133,12 @@ class DaysVisibleDateRange extends VisibleDateRange {
   }) {
     // Taken from [_InteractiveViewerState._kDrag].
     const kDrag = 0.0000135;
-    final simulation =
-        FrictionSimulation(kDrag, focusPage, velocity, tolerance: tolerance);
+    final simulation = FrictionSimulation(
+      kDrag,
+      focusPage,
+      velocity,
+      tolerance: tolerance,
+    );
     final targetFocusPage = simulation.finalX;
 
     final alignmentOffset = alignmentDate.datePage % swipeRange;
@@ -181,11 +186,13 @@ class DaysVisibleDateRange extends VisibleDateRange {
     super.debugFillProperties(properties);
     properties.add(IntProperty('swipeRange', swipeRange));
     properties.add(DateDiagnosticsProperty('alignmentDate', alignmentDate));
-    properties
-        .add(DateDiagnosticsProperty('minDate', minDate, defaultValue: null));
+    properties.add(
+      DateDiagnosticsProperty('minDate', minDate, defaultValue: null),
+    );
     properties.add(DoubleProperty('minPage', minPage, defaultValue: null));
-    properties
-        .add(DateDiagnosticsProperty('maxDate', maxDate, defaultValue: null));
+    properties.add(
+      DateDiagnosticsProperty('maxDate', maxDate, defaultValue: null),
+    );
     properties.add(DoubleProperty('maxPage', maxPage, defaultValue: null));
   }
 }
@@ -195,8 +202,8 @@ class DaysVisibleDateRange extends VisibleDateRange {
 /// This is useful for, e.g., [RecurringMultiDateTimetable].
 class FixedDaysVisibleDateRange extends VisibleDateRange {
   FixedDaysVisibleDateRange(this.startDate, int visibleDayCount)
-      : assert(startDate.debugCheckIsValidTimetableDate()),
-        super(visibleDayCount: visibleDayCount, canScroll: false);
+    : assert(startDate.debugCheckIsValidTimetableDate()),
+      super(visibleDayCount: visibleDayCount, canScroll: false);
 
   final DateTime startDate;
   double get page => startDate.page;
@@ -206,16 +213,14 @@ class FixedDaysVisibleDateRange extends VisibleDateRange {
     double focusPage, {
     double velocity = 0,
     Tolerance tolerance = Tolerance.defaultTolerance,
-  }) =>
-      page;
+  }) => page;
 
   @override
   double getTargetPageForCurrent(
     double currentPage, {
     double velocity = 0,
     Tolerance tolerance = Tolerance.defaultTolerance,
-  }) =>
-      page;
+  }) => page;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {

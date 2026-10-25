@@ -21,12 +21,8 @@ import '../utils.dart';
 /// * [DefaultTimetableCallbacks], which provides callbacks to descendant
 ///   Timetable widgets.
 class DateIndicator extends StatelessWidget {
-  DateIndicator(
-    this.date, {
-    super.key,
-    this.onTap,
-    this.style,
-  }) : assert(date.debugCheckIsValidTimetableDate());
+  DateIndicator(this.date, {super.key, this.onTap, this.style})
+    : assert(date.debugCheckIsValidTimetableDate());
 
   final DateTime date;
   final VoidCallback? onTap;
@@ -34,7 +30,8 @@ class DateIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = this.style ??
+    final style =
+        this.style ??
         TimetableTheme.orDefaultOf(context).dateIndicatorStyleProvider(date);
     final defaultOnTap = DefaultTimetableCallbacks.of(context)?.onDateTap;
 
@@ -74,21 +71,24 @@ class DateIndicatorStyle {
 
     final theme = context.theme;
     return DateIndicatorStyle.raw(
-      decoration: decoration ??
+      decoration:
+          decoration ??
           BoxDecoration(
             shape: BoxShape.circle,
             color: isToday ? theme.colorScheme.primary : Colors.transparent,
           ),
       padding: padding ?? const EdgeInsets.all(8),
-      textStyle: textStyle ??
+      textStyle:
+          textStyle ??
           context.textTheme.titleMedium!.copyWith(
             color: isToday
                 ? theme.colorScheme.primary.highEmphasisOnColor
                 : isInFuture
-                    ? theme.colorScheme.surface.contrastColor
-                    : theme.colorScheme.surface.mediumEmphasisOnColor,
+                ? theme.colorScheme.surface.contrastColor
+                : theme.colorScheme.surface.mediumEmphasisOnColor,
           ),
-      label: label ??
+      label:
+          label ??
           () {
             context.dependOnTimetableLocalizations();
             return DateFormat('d').format(date);

@@ -15,9 +15,8 @@ import 'event.dart';
 /// * [mergeEventProviders], which merges multiple [EventProvider]s.
 /// * [DefaultEventProvider], which provides [EventProvider]s to Timetable
 ///   widgets below it.
-typedef EventProvider<E extends Event> = List<E> Function(
-  Interval visibleRange,
-);
+typedef EventProvider<E extends Event> =
+    List<E> Function(Interval visibleRange);
 
 EventProvider<E> eventProviderFromFixedList<E extends Event>(List<E> events) {
   return (visibleRange) =>

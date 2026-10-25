@@ -15,18 +15,16 @@ import '../utils.dart';
 /// * [TimetableTheme] (and [TimetableConfig]), which provide styles to
 ///   descendant Timetable widgets.
 class WeekdayIndicator extends StatelessWidget {
-  WeekdayIndicator(
-    this.date, {
-    super.key,
-    this.style,
-  }) : assert(date.debugCheckIsValidTimetableDate());
+  WeekdayIndicator(this.date, {super.key, this.style})
+    : assert(date.debugCheckIsValidTimetableDate());
 
   final DateTime date;
   final WeekdayIndicatorStyle? style;
 
   @override
   Widget build(BuildContext context) {
-    final style = this.style ??
+    final style =
+        this.style ??
         TimetableTheme.orDefaultOf(context).weekdayIndicatorStyleProvider(date);
 
     return DecoratedBox(
@@ -60,13 +58,15 @@ class WeekdayIndicatorStyle {
     return WeekdayIndicatorStyle.raw(
       decoration: decoration ?? const BoxDecoration(),
       padding: padding ?? EdgeInsets.zero,
-      textStyle: textStyle ??
+      textStyle:
+          textStyle ??
           theme.textTheme.bodySmall!.copyWith(
             color: date.isToday
                 ? theme.colorScheme.primary
                 : theme.colorScheme.surface.mediumEmphasisOnColor,
           ),
-      label: label ??
+      label:
+          label ??
           () {
             context.dependOnTimetableLocalizations();
             return DateFormat('EEE').format(date);

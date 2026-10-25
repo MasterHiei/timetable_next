@@ -16,24 +16,21 @@ import '../utils.dart';
 /// * [TimetableTheme] (and [TimetableConfig]), which provide styles to
 ///   descendant Timetable widgets.
 class MonthIndicator extends StatelessWidget {
-  MonthIndicator(
-    this.month, {
-    super.key,
-    this.style,
-  }) : assert(month.debugCheckIsValidTimetableMonth());
+  MonthIndicator(this.month, {super.key, this.style})
+    : assert(month.debugCheckIsValidTimetableMonth());
   static Widget forController(
     DateController? controller, {
     Key? key,
     MonthIndicatorStyle? style,
-  }) =>
-      _MonthIndicatorForController(controller, key: key, style: style);
+  }) => _MonthIndicatorForController(controller, key: key, style: style);
 
   final DateTime month;
   final MonthIndicatorStyle? style;
 
   @override
   Widget build(BuildContext context) {
-    final style = this.style ??
+    final style =
+        this.style ??
         TimetableTheme.orDefaultOf(context).monthIndicatorStyleProvider(month);
 
     return Text(style.label, style: style.textStyle);
@@ -58,7 +55,8 @@ class MonthIndicatorStyle {
     final theme = context.theme;
     return MonthIndicatorStyle.raw(
       textStyle: textStyle ?? theme.textTheme.titleMedium!,
-      label: label ??
+      label:
+          label ??
           () {
             context.dependOnTimetableLocalizations();
             return DateFormat.MMMM().format(month);
@@ -66,10 +64,7 @@ class MonthIndicatorStyle {
     );
   }
 
-  const MonthIndicatorStyle.raw({
-    required this.textStyle,
-    required this.label,
-  });
+  const MonthIndicatorStyle.raw({required this.textStyle, required this.label});
 
   final TextStyle textStyle;
   final String label;
@@ -92,11 +87,7 @@ class MonthIndicatorStyle {
 }
 
 class _MonthIndicatorForController extends StatelessWidget {
-  const _MonthIndicatorForController(
-    this.controller, {
-    super.key,
-    this.style,
-  });
+  const _MonthIndicatorForController(this.controller, {super.key, this.style});
 
   final DateController? controller;
   final MonthIndicatorStyle? style;

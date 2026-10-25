@@ -12,11 +12,7 @@ import '../utils.dart';
 /// * [TimetableTheme] (and [TimetableConfig]), which provide styles to
 ///   descendant Timetable widgets.
 class HourDividers extends StatelessWidget {
-  const HourDividers({
-    super.key,
-    this.style,
-    this.child,
-  });
+  const HourDividers({super.key, this.style, this.child});
 
   final HourDividersStyle? style;
   final Widget? child;
@@ -51,10 +47,8 @@ class HourDividersStyle {
     );
   }
 
-  const HourDividersStyle.raw({
-    required this.color,
-    required this.width,
-  }) : assert(width >= 0);
+  const HourDividersStyle.raw({required this.color, required this.width})
+    : assert(width >= 0);
 
   final Color color;
   final double width;
@@ -77,11 +71,10 @@ class HourDividersStyle {
 }
 
 class _HourDividersPainter extends CustomPainter {
-  _HourDividersPainter({
-    required this.style,
-  }) : _paint = Paint()
-          ..color = style.color
-          ..strokeWidth = style.width;
+  _HourDividersPainter({required this.style})
+    : _paint = Paint()
+        ..color = style.color
+        ..strokeWidth = style.width;
 
   final HourDividersStyle style;
   final Paint _paint;

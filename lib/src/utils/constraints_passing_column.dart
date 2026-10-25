@@ -27,10 +27,14 @@ class _ConstraintsPassingColumnParentData
 
 class _ConstraintsPassingColumnRenderObject extends RenderBox
     with
-        ContainerRenderObjectMixin<RenderBox,
-            _ConstraintsPassingColumnParentData>,
-        RenderBoxContainerDefaultsMixin<RenderBox,
-            _ConstraintsPassingColumnParentData> {
+        ContainerRenderObjectMixin<
+          RenderBox,
+          _ConstraintsPassingColumnParentData
+        >,
+        RenderBoxContainerDefaultsMixin<
+          RenderBox,
+          _ConstraintsPassingColumnParentData
+        > {
   @override
   void setupParentData(RenderObject child) {
     if (child.parentData is! _ConstraintsPassingColumnParentData) {

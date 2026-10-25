@@ -18,14 +18,13 @@ import '../utils.dart';
 import '../utils/constraints_passing_column.dart';
 import 'recurring_multi_date.dart';
 
-typedef MultiDateTimetableHeaderBuilder = Widget Function(
-  BuildContext context,
-  double? leadingWidth,
-);
-typedef MultiDateTimetableContentBuilder = Widget Function(
-  BuildContext context,
-  ValueChanged<double> onLeadingWidthChanged,
-);
+typedef MultiDateTimetableHeaderBuilder =
+    Widget Function(BuildContext context, double? leadingWidth);
+typedef MultiDateTimetableContentBuilder =
+    Widget Function(
+      BuildContext context,
+      ValueChanged<double> onLeadingWidthChanged,
+    );
 
 /// A Timetable widget that displays multiple consecutive days.
 ///
@@ -59,7 +58,8 @@ class MultiDateTimetable<E extends Event> extends StatefulWidget {
     return MultiDateTimetable.raw(
       key: key,
       headerBuilder: headerBuilder ?? _defaultHeaderBuilder<E>(),
-      contentBuilder: contentBuilder ??
+      contentBuilder:
+          contentBuilder ??
           _defaultContentBuilder<E>(contentLeading, contentGeometryKey),
     );
   }
@@ -72,31 +72,28 @@ class MultiDateTimetable<E extends Event> extends StatefulWidget {
 
   final MultiDateTimetableHeaderBuilder headerBuilder;
   static MultiDateTimetableHeaderBuilder
-      _defaultHeaderBuilder<E extends Event>() {
+  _defaultHeaderBuilder<E extends Event>() {
     return (context, leadingWidth) => MultiDateTimetableHeader<E>(
-          leading: SizedBox(
-            width: leadingWidth,
-            child: Align(
-              heightFactor: 1,
-              child: WeekIndicator.forController(null),
-            ),
-          ),
-        );
+      leading: SizedBox(
+        width: leadingWidth,
+        child: Align(heightFactor: 1, child: WeekIndicator.forController(null)),
+      ),
+    );
   }
 
   final MultiDateTimetableContentBuilder contentBuilder;
   static MultiDateTimetableContentBuilder
-      _defaultContentBuilder<E extends Event>(
+  _defaultContentBuilder<E extends Event>(
     Widget? contentLeading,
     GlobalKey<MultiDateContentGeometry>? contentGeometryKey,
   ) {
     return (context, onLeadingWidthChanged) => MultiDateTimetableContent<E>(
-          leading: SizeReportingWidget(
-            onSizeChanged: (size) => onLeadingWidthChanged(size.width),
-            child: contentLeading ?? const _DefaultContentLeading(),
-          ),
-          contentGeometryKey: contentGeometryKey,
-        );
+      leading: SizeReportingWidget(
+        onSizeChanged: (size) => onLeadingWidthChanged(size.width),
+        child: contentLeading ?? const _DefaultContentLeading(),
+      ),
+      contentGeometryKey: contentGeometryKey,
+    );
   }
 
   @override
@@ -155,12 +152,12 @@ class MultiDateTimetableHeader<E extends Event> extends StatelessWidget {
     DateWidgetBuilder? dateHeaderBuilder,
     Widget? bottom,
   }) : this.raw(
-          key: key,
-          leading: leading ?? WeekIndicator.forController(null),
-          dateHeaderBuilder:
-              dateHeaderBuilder ?? ((context, date) => DateHeader(date)),
-          bottom: bottom ?? MultiDateEventHeader<E>(),
-        );
+         key: key,
+         leading: leading ?? WeekIndicator.forController(null),
+         dateHeaderBuilder:
+             dateHeaderBuilder ?? ((context, date) => DateHeader(date)),
+         bottom: bottom ?? MultiDateEventHeader<E>(),
+       );
 
   const MultiDateTimetableHeader.raw({
     super.key,
@@ -254,8 +251,8 @@ class MultiDateTimetableStyle {
   }
 
   const MultiDateTimetableStyle.raw({this.maxHeaderFraction = 0.5})
-      : assert(0 < maxHeaderFraction),
-        assert(maxHeaderFraction < 1);
+    : assert(0 < maxHeaderFraction),
+      assert(maxHeaderFraction < 1);
 
   /// The maximum fraction (between 0 and 1, exclusive) that the header
   /// [MultiDateTimetableHeader] may consume of the timetable's total height.
@@ -299,8 +296,9 @@ class _DefaultContentLeading extends StatelessWidget {
               // `TimeIndicators.hours` overwrites the style provider's labels
               // by default, but here we want the user's style provider from the
               // ambient theme to take precedence.
-              styleProvider:
-                  TimetableTheme.of(context)?.timeIndicatorStyleProvider,
+              styleProvider: TimetableTheme.of(
+                context,
+              )?.timeIndicatorStyleProvider,
             ),
           ),
         ),

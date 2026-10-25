@@ -30,7 +30,8 @@ class _MonthPageViewState extends State<MonthPageView> {
   @override
   void initState() {
     super.initState();
-    _controller = widget.monthPageController ??
+    _controller =
+        widget.monthPageController ??
         MonthPageController(initialMonth: DateTimeTimetable.currentMonth());
     _controller.addListener(_onMonthChanged);
   }
@@ -60,8 +61,9 @@ class _MonthPageViewState extends State<MonthPageView> {
             onSizeChanged: (size) {
               if (_heights[page] == size.height) return;
               _heights[page] = size.height;
-              WidgetsBinding.instance
-                  .addPostFrameCallback((_) => setState(() {}));
+              WidgetsBinding.instance.addPostFrameCallback(
+                (_) => setState(() {}),
+              );
             },
             child: child,
           );
@@ -110,9 +112,10 @@ class _MonthPageViewState extends State<MonthPageView> {
 class MonthPageController extends ChangeNotifier
     implements ValueListenable<DateTime> {
   MonthPageController({required DateTime initialMonth})
-      : assert(initialMonth.debugCheckIsValidTimetableMonth()),
-        _pageController =
-            PageController(initialPage: _pageFromMonth(initialMonth)) {
+    : assert(initialMonth.debugCheckIsValidTimetableMonth()),
+      _pageController = PageController(
+        initialPage: _pageFromMonth(initialMonth),
+      ) {
     _pageController.addListener(notifyListeners);
   }
 
@@ -143,7 +146,8 @@ class MonthPageController extends ChangeNotifier
       (_minMonth.year * DateTime.monthsPerYear) + (_minMonth.month - 1);
   static DateTime _monthFromPage(int page) {
     page = _minPage + page;
-    final year = (page < 0 ? page - DateTime.monthsPerYear + 1 : page) ~/
+    final year =
+        (page < 0 ? page - DateTime.monthsPerYear + 1 : page) ~/
         DateTime.monthsPerYear;
     final month = page % DateTime.monthsPerYear + 1;
     return DateTimeTimetable.month(year, month);

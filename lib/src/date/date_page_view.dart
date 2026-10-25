@@ -168,7 +168,7 @@ class _DatePageViewState extends State<DatePageView> {
 
 class MultiDateScrollController extends ScrollController {
   MultiDateScrollController(this.controller)
-      : super(initialScrollOffset: controller.value.page) {
+    : super(initialScrollOffset: controller.value.page) {
     controller.addListener(_listenToController);
   }
 
@@ -278,7 +278,8 @@ class MultiDateScrollPosition extends ScrollPositionWithSingleContext {
     final overscroll = super.setPixels(newPixels);
 
     final activity = this.activity;
-    final dateScrollActivity = activity is DragScrollActivity ||
+    final dateScrollActivity =
+        activity is DragScrollActivity ||
             (activity is BallisticScrollActivity &&
                 activity.velocity.abs() > precisionErrorTolerance)
         ? const DragDateScrollActivity()
@@ -300,8 +301,9 @@ class MultiDateScrollPosition extends ScrollPositionWithSingleContext {
   }
 
   void _updateUserScrollDirectionFromDelta(double delta) {
-    final direction =
-        delta > 0 ? ScrollDirection.forward : ScrollDirection.reverse;
+    final direction = delta > 0
+        ? ScrollDirection.forward
+        : ScrollDirection.reverse;
     updateUserScrollDirection(direction);
   }
 

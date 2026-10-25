@@ -14,11 +14,7 @@ import '../theme.dart';
 /// * [TimetableTheme] (and [TimetableConfig]), which provide styles to
 ///   descendant Timetable widgets.
 class DateDividers extends StatelessWidget {
-  const DateDividers({
-    super.key,
-    this.style,
-    this.child,
-  });
+  const DateDividers({super.key, this.style, this.child});
 
   final DateDividersStyle? style;
   final Widget? child;
@@ -54,10 +50,8 @@ class DateDividersStyle {
     );
   }
 
-  const DateDividersStyle.raw({
-    required this.color,
-    required this.width,
-  }) : assert(width >= 0);
+  const DateDividersStyle.raw({required this.color, required this.width})
+    : assert(width >= 0);
 
   final Color color;
   final double width;
@@ -80,13 +74,11 @@ class DateDividersStyle {
 }
 
 class _DateDividersPainter extends CustomPainter {
-  _DateDividersPainter({
-    required this.controller,
-    required this.style,
-  })  : _paint = Paint()
-          ..color = style.color
-          ..strokeWidth = style.width,
-        super(repaint: controller);
+  _DateDividersPainter({required this.controller, required this.style})
+    : _paint = Paint()
+        ..color = style.color
+        ..strokeWidth = style.width,
+      super(repaint: controller);
 
   final DateController controller;
   final DateDividersStyle style;

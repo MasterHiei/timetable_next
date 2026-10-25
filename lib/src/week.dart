@@ -18,7 +18,7 @@ extension DateTimeWeekTimetable on DateTime {
 @immutable
 class Week implements Comparable<Week> {
   const Week(this.weekBasedYear, this.weekOfYear)
-      : assert(weekOfYear >= 1 && weekOfYear <= 53);
+    : assert(weekOfYear >= 1 && weekOfYear <= 53);
 
   factory Week.forDate(DateTime date) {
     assert(date.debugCheckIsValidTimetableDate());
@@ -30,8 +30,11 @@ class Week implements Comparable<Week> {
     if (weekOfYear == 0) {
       // If the week number thus obtained equals 0, it means that the given date
       // belongs to the preceding (week-based) year.
-      final weekOfYear =
-          DateTimeTimetable.date(year - 1, 12, 31).week.weekOfYear;
+      final weekOfYear = DateTimeTimetable.date(
+        year - 1,
+        12,
+        31,
+      ).week.weekOfYear;
       return Week(year - 1, weekOfYear);
     }
 

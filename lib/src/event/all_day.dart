@@ -6,11 +6,8 @@ import 'package:flutter/widgets.dart';
 import '../utils.dart';
 import 'event.dart';
 
-typedef AllDayEventBuilder<E extends Event> = Widget Function(
-  BuildContext context,
-  E event,
-  AllDayEventLayoutInfo info,
-);
+typedef AllDayEventBuilder<E extends Event> =
+    Widget Function(BuildContext context, E event, AllDayEventLayoutInfo info);
 
 /// Information about how an all-day event was laid out.
 @immutable
@@ -18,8 +15,8 @@ class AllDayEventLayoutInfo {
   const AllDayEventLayoutInfo({
     required this.hiddenStartDays,
     required this.hiddenEndDays,
-  })  : assert(hiddenStartDays >= 0),
-        assert(hiddenEndDays >= 0);
+  }) : assert(hiddenStartDays >= 0),
+       assert(hiddenEndDays >= 0);
 
   /// How many days of this event are hidden before the viewport starts.
   final double hiddenStartDays;
@@ -165,7 +162,8 @@ class AllDayEventBorderRadii {
       rightTipRadius: rightTipRadius.coerceAtMost(maximumRadius),
     );
 
-    final minWidth = radii.leftTipRadius +
+    final minWidth =
+        radii.leftTipRadius +
         leftTipWidth +
         radii.rightTipRadius +
         rightTipWidth +
@@ -175,11 +173,13 @@ class AllDayEventBorderRadii {
         );
 
     // ignore: omit_local_variable_types
-    final double left =
-        info.hiddenStartDays == 0 ? 0 : math.min(0, size.width - minWidth);
+    final double left = info.hiddenStartDays == 0
+        ? 0
+        : math.min(0, size.width - minWidth);
     // ignore: omit_local_variable_types
-    final double right =
-        info.hiddenEndDays == 0 ? size.width : math.max(size.width, minWidth);
+    final double right = info.hiddenEndDays == 0
+        ? size.width
+        : math.max(size.width, minWidth);
 
     // no tip:   0      ≈  0°
     // full tip: PI / 4 ≈ 45°

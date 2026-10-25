@@ -43,7 +43,7 @@ class TimetableThemeData {
     NowIndicatorStyle? nowIndicatorStyle,
     TimeBasedStyleProvider<TimeIndicatorStyle>? timeIndicatorStyleProvider,
     DateBasedStyleProvider<WeekdayIndicatorStyle>?
-        weekdayIndicatorStyleProvider,
+    weekdayIndicatorStyleProvider,
     WeekBasedStyleProvider<WeekIndicatorStyle>? weekIndicatorStyleProvider,
   }) {
     return TimetableThemeData.raw(
@@ -53,23 +53,29 @@ class TimetableThemeData {
           dateEventsStyleProvider ?? (date) => DateEventsStyle(context, date),
       dateHeaderStyleProvider:
           dateHeaderStyleProvider ?? (date) => DateHeaderStyle(context, date),
-      dateIndicatorStyleProvider: dateIndicatorStyleProvider ??
+      dateIndicatorStyleProvider:
+          dateIndicatorStyleProvider ??
           (date) => DateIndicatorStyle(context, date),
       hourDividersStyle: hourDividersStyle ?? HourDividersStyle(context),
-      monthIndicatorStyleProvider: monthIndicatorStyleProvider ??
+      monthIndicatorStyleProvider:
+          monthIndicatorStyleProvider ??
           (month) => MonthIndicatorStyle(context, month),
-      monthWidgetStyleProvider: monthWidgetStyleProvider ??
+      monthWidgetStyleProvider:
+          monthWidgetStyleProvider ??
           (month) => MonthWidgetStyle(context, month, startOfWeek: startOfWeek),
       multiDateEventHeaderStyle:
           multiDateEventHeaderStyle ?? MultiDateEventHeaderStyle(context),
       multiDateTimetableStyle:
           multiDateTimetableStyle ?? MultiDateTimetableStyle(context),
       nowIndicatorStyle: nowIndicatorStyle ?? NowIndicatorStyle(context),
-      timeIndicatorStyleProvider: timeIndicatorStyleProvider ??
+      timeIndicatorStyleProvider:
+          timeIndicatorStyleProvider ??
           (time) => TimeIndicatorStyle(context, time),
-      weekdayIndicatorStyleProvider: weekdayIndicatorStyleProvider ??
+      weekdayIndicatorStyleProvider:
+          weekdayIndicatorStyleProvider ??
           (date) => WeekdayIndicatorStyle(context, date),
-      weekIndicatorStyleProvider: weekIndicatorStyleProvider ??
+      weekIndicatorStyleProvider:
+          weekIndicatorStyleProvider ??
           (week) => WeekIndicatorStyle(context, week),
     );
   }
@@ -98,14 +104,14 @@ class TimetableThemeData {
   final DateBasedStyleProvider<DateIndicatorStyle> dateIndicatorStyleProvider;
   final HourDividersStyle hourDividersStyle;
   final MonthBasedStyleProvider<MonthIndicatorStyle>
-      monthIndicatorStyleProvider;
+  monthIndicatorStyleProvider;
   final MonthBasedStyleProvider<MonthWidgetStyle> monthWidgetStyleProvider;
   final MultiDateEventHeaderStyle multiDateEventHeaderStyle;
   final MultiDateTimetableStyle multiDateTimetableStyle;
   final NowIndicatorStyle nowIndicatorStyle;
   final TimeBasedStyleProvider<TimeIndicatorStyle> timeIndicatorStyleProvider;
   final DateBasedStyleProvider<WeekdayIndicatorStyle>
-      weekdayIndicatorStyleProvider;
+  weekdayIndicatorStyleProvider;
   final WeekBasedStyleProvider<WeekIndicatorStyle> weekIndicatorStyleProvider;
 
   TimetableThemeData copyWith({
@@ -122,7 +128,7 @@ class TimetableThemeData {
     NowIndicatorStyle? nowIndicatorStyle,
     TimeBasedStyleProvider<TimeIndicatorStyle>? timeIndicatorStyleProvider,
     DateBasedStyleProvider<WeekdayIndicatorStyle>?
-        weekdayIndicatorStyleProvider,
+    weekdayIndicatorStyleProvider,
     WeekBasedStyleProvider<WeekIndicatorStyle>? weekIndicatorStyleProvider,
   }) {
     return TimetableThemeData.raw(
@@ -199,11 +205,7 @@ class TimetableThemeData {
 ///
 /// * [TimetableThemeData], which bundles the actual styles.
 class TimetableTheme extends InheritedWidget {
-  const TimetableTheme({
-    super.key,
-    required this.data,
-    required super.child,
-  });
+  const TimetableTheme({super.key, required this.data, required super.child});
 
   final TimetableThemeData data;
 

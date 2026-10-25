@@ -25,12 +25,12 @@ class DateContent<E extends Event> extends StatelessWidget {
     required List<E> events,
     this.overlays = const [],
     this.onBackgroundTap,
-  })  : assert(date.debugCheckIsValidTimetableDate()),
-        assert(
-          events.every((e) => e.interval.intersects(date.fullDayInterval)),
-          'All events must intersect the given date',
-        ),
-        events = events.sortedByStartLength();
+  }) : assert(date.debugCheckIsValidTimetableDate()),
+       assert(
+         events.every((e) => e.interval.intersects(date.fullDayInterval)),
+         'All events must intersect the given date',
+       ),
+       events = events.sortedByStartLength();
 
   final DateTime date;
 
@@ -41,7 +41,8 @@ class DateContent<E extends Event> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final onBackgroundTap = this.onBackgroundTap ??
+    final onBackgroundTap =
+        this.onBackgroundTap ??
         DefaultTimetableCallbacks.of(context)?.onDateTimeBackgroundTap;
 
     return LayoutBuilder(
@@ -52,8 +53,8 @@ class DateContent<E extends Event> extends StatelessWidget {
           behavior: HitTestBehavior.translucent,
           onTapUp: onBackgroundTap != null
               ? (details) => onBackgroundTap(
-                    date + (details.localPosition.dy / height).days,
-                  )
+                  date + (details.localPosition.dy / height).days,
+                )
               : null,
           child: Stack(
             children: [

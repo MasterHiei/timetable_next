@@ -23,12 +23,12 @@ class DateEvents<E extends Event> extends StatelessWidget {
     required List<E> events,
     this.eventBuilder,
     this.style,
-  })  : assert(date.debugCheckIsValidTimetableDate()),
-        assert(
-          events.every((e) => e.interval.intersects(date.fullDayInterval)),
-          'All events must intersect the given date',
-        ),
-        events = events.sortedByStartLength();
+  }) : assert(date.debugCheckIsValidTimetableDate()),
+       assert(
+         events.every((e) => e.interval.intersects(date.fullDayInterval)),
+         'All events must intersect the given date',
+       ),
+       events = events.sortedByStartLength();
 
   final DateTime date;
   final List<E> events;
@@ -39,7 +39,8 @@ class DateEvents<E extends Event> extends StatelessWidget {
   Widget build(BuildContext context) {
     final eventBuilder =
         this.eventBuilder ?? DefaultEventBuilder.of<E>(context)!;
-    final style = this.style ??
+    final style =
+        this.style ??
         TimetableTheme.orDefaultOf(context).dateEventsStyleProvider(date);
     return Padding(
       padding: style.padding,
@@ -178,7 +179,7 @@ class DateEventsStyle {
 class _DayEventsLayoutDelegate<E extends Event>
     extends MultiChildLayoutDelegate {
   _DayEventsLayoutDelegate(this.date, this.events, this.style)
-      : assert(date.debugCheckIsValidTimetableDate());
+    : assert(date.debugCheckIsValidTimetableDate());
 
   static const minWidth = 4.0;
 
@@ -210,16 +211,17 @@ class _DayEventsLayoutDelegate<E extends Event>
       final top = timeToY(event.start)
           .coerceAtMost(size.height - durationToY(style.minEventDuration))
           .coerceAtMost(size.height - style.minEventHeight);
-      final height = durationToY(_durationOn(event, size.height))
-          .clamp(0, size.height - top)
-          .toDouble();
+      final height = durationToY(
+        _durationOn(event, size.height),
+      ).clamp(0, size.height - top).toDouble();
 
       final position = positions.eventPositions[event]!;
       final columnWidth =
           size.width / positions.groupColumnCounts[position.group];
       final columnLeft = columnWidth * position.column;
       final left = columnLeft + position.index * style.stackedEventSpacing;
-      final width = columnWidth * position.columnSpan -
+      final width =
+          columnWidth * position.columnSpan -
           position.index * style.stackedEventSpacing;
 
       final childSize = Size(width.coerceAtLeast(minWidth), height);
@@ -263,8 +265,11 @@ class _DayEventsLayoutDelegate<E extends Event>
   ) {
     if (currentGroup.isEmpty) return;
     if (currentGroup.length == 1) {
-      positions.eventPositions[currentGroup.first] =
-          _SingleEventPosition(positions.groupColumnCounts.length, 0, 0);
+      positions.eventPositions[currentGroup.first] = _SingleEventPosition(
+        positions.groupColumnCounts.length,
+        0,
+        0,
+      );
       positions.groupColumnCounts.add(1);
       return;
     }
@@ -286,7 +291,8 @@ class _DayEventsLayoutDelegate<E extends Event>
           continue;
         }
 
-        final index = column
+        final index =
+            column
                 .where((e) => _actualEnd(e, height) >= event.start)
                 .map((e) => positions.eventPositions[e]!.index)
                 .maxOrNull ??
@@ -344,8 +350,9 @@ class _DayEventsLayoutDelegate<E extends Event>
 
         columnSpan++;
       }
-      positions.eventPositions[event] =
-          position.copyWith(columnSpan: columnSpan);
+      positions.eventPositions[event] = position.copyWith(
+        columnSpan: columnSpan,
+      );
     }
 
     positions.groupColumnCounts.add(columns.length);

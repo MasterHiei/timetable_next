@@ -22,12 +22,8 @@ import 'weekday_indicator.dart';
 /// * [DefaultTimetableCallbacks], which provides callbacks to descendant
 ///   Timetable widgets.
 class DateHeader extends StatelessWidget {
-  DateHeader(
-    this.date, {
-    super.key,
-    this.onTap,
-    this.style,
-  }) : assert(date.debugCheckIsValidTimetableDate());
+  DateHeader(this.date, {super.key, this.onTap, this.style})
+    : assert(date.debugCheckIsValidTimetableDate());
 
   final DateTime date;
   final VoidCallback? onTap;
@@ -35,7 +31,8 @@ class DateHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = this.style ??
+    final style =
+        this.style ??
         TimetableTheme.orDefaultOf(context).dateHeaderStyleProvider(date);
     final callbacks = DefaultTimetableCallbacks.of(context);
     final defaultOnTap = callbacks?.onDateTap;
@@ -47,8 +44,9 @@ class DateHeader extends StatelessWidget {
         child: Padding(
           padding: style.padding,
           child: DefaultTimetableCallbacks(
-            callbacks: (callbacks ?? const TimetableCallbacks())
-                .copyWith(clearOnDateTap: true),
+            callbacks: (callbacks ?? const TimetableCallbacks()).copyWith(
+              clearOnDateTap: true,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -84,7 +82,8 @@ class DateHeaderStyle {
     assert(date.debugCheckIsValidTimetableDate());
 
     return DateHeaderStyle.raw(
-      tooltip: tooltip ??
+      tooltip:
+          tooltip ??
           () {
             context.dependOnTimetableLocalizations();
             return DateFormat.yMMMMEEEEd().format(date);
