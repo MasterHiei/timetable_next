@@ -1,3 +1,4 @@
+// Changes from upstream: made position diagnostics safe before the initial layout.
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -326,6 +327,7 @@ class MultiDateScrollPosition extends ScrollPositionWithSingleContext {
   @override
   void debugFillDescription(List<String> description) {
     super.debugFillDescription(description);
-    description.add('owner: $owner');
+    // Diagnostics can run before the owner's attached position has pixels.
+    description.add('owner: ${describeIdentity(owner)}');
   }
 }
