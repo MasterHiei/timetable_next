@@ -82,4 +82,109 @@ void main() {
       isEmpty,
     );
   });
+
+  group('time overlays exclude spans outside the display day', () {
+    for (final (name, start, end) in <(String, DateTime, DateTime)>[
+      ('point', DateTime.utc(2024, 3, 1, 12), DateTime.utc(2024, 3, 1, 12)),
+      ('before', DateTime.utc(2024, 2, 29, 21), DateTime.utc(2024, 2, 29, 22)),
+      ('after', DateTime.utc(2024, 3, 2, 1), DateTime.utc(2024, 3, 2, 2)),
+      (
+        'ends at day start',
+        DateTime.utc(2024, 2, 29, 23),
+        DateTime.utc(2024, 3),
+      ),
+      (
+        'starts at next day',
+        DateTime.utc(2024, 3, 2),
+        DateTime.utc(2024, 3, 2, 1),
+      ),
+    ]) {
+      test(name, () {
+        expect(
+          TestEvent(
+            start,
+            end,
+          ).toTimeOverlay(date: midnight, widget: const SizedBox()),
+          isNull,
+        );
+      });
+    }
+  });
+
+  group('time overlays clip positive spans at microsecond precision', () {
+    for (final (name, start, end, expectedStart, expectedEnd)
+        in <(String, DateTime, DateTime, Duration, Duration)>[
+          (
+            'enters the day',
+            DateTime.utc(2024, 2, 29, 23),
+            DateTime.utc(2024, 3, 1, 9),
+            Duration.zero,
+            const Duration(hours: 9),
+          ),
+          (
+            'leaves the day',
+            DateTime.utc(2024, 3, 1, 20),
+            DateTime.utc(2024, 3, 2, 1),
+            const Duration(hours: 20),
+            const Duration(days: 1),
+          ),
+          (
+            'covers the day',
+            DateTime.utc(2024, 2, 29, 23),
+            DateTime.utc(2024, 3, 2, 1),
+            Duration.zero,
+            const Duration(days: 1),
+          ),
+          (
+            'last microsecond',
+            DateTime.utc(2024, 3, 1, 23, 59, 59, 999, 999),
+            DateTime.utc(2024, 3, 2),
+            const Duration(
+              hours: 23,
+              minutes: 59,
+              seconds: 59,
+              milliseconds: 999,
+              microseconds: 999,
+            ),
+            const Duration(days: 1),
+          ),
+        ]) {
+      test(name, () {
+        final event = TestEvent(start, end);
+        final overlay = event.toTimeOverlay(
+          date: midnight,
+          widget: const SizedBox(),
+        )!;
+        expect(overlay.start, expectedStart);
+        expect(overlay.end, expectedEnd);
+        if (name == 'last microsecond') {
+          expect(
+            event.toTimeOverlay(
+              date: DateTime.utc(2024, 3, 2),
+              widget: const SizedBox(),
+            ),
+            isNull,
+          );
+        }
+      });
+    }
+  });
+
+  test('time overlays retain the widget and requested paint order', () {
+    final event = TestEvent(
+      DateTime.utc(2024, 3, 1, 9),
+      DateTime.utc(2024, 3, 1, 10),
+    );
+    final child = SizedBox(key: UniqueKey());
+    final overlay = event.toTimeOverlay(date: midnight, widget: child)!;
+    expect(overlay.position, TimeOverlayPosition.inFrontOfEvents);
+    expect(overlay.widget, same(child));
+    final behind = event.toTimeOverlay(
+      date: midnight,
+      widget: child,
+      position: .behindEvents,
+    )!;
+    expect(behind.position, TimeOverlayPosition.behindEvents);
+    expect(behind.widget, same(child));
+  });
 }
