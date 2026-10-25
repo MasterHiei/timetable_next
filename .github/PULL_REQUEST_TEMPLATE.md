@@ -1,6 +1,9 @@
-<!-- Please enter the corresponding issue ID: -->
-Closes: #Issue
+## Changes
 
-<!-- Add the breaking label (PR: BREAKING) if applicable. -->
+<!-- Changes from upstream: focused the template on behavior, verification and compatibility. -->
 
-<!-- Please summarize your changes and add screenshots if applicable: -->
+Describe the problem and resulting behavior. Link the related issue if applicable.
+
+## Verification
+
+List relevant checks and results. Explain any unavailable checks or compatibility changes.

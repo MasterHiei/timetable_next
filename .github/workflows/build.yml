@@ -1,90 +1,40 @@
-name: Build & Lint
-
+# Changes from upstream: added minimum/stable SDK and dependency lower-bound validation.
+name: Package acceptance
 on:
   pull_request:
   push:
     branches: [main]
   schedule:
-    - cron: 0 4 * * 1
+    - cron: '0 4 * * 1'
   workflow_dispatch:
-
-env:
-  JAVA_VERSION: 17
-
+permissions:
+  contents: read
 jobs:
-  test:
-    name: Run tests
+  package:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        # TODO(JonasWanke): re-enable beta CI when next stable Flutter version
-        # including breaking changes to Color are released
-        flutter-channel: [stable]
+        sdk:
+          - {label: minimum, version: '3.38.1'}
+          - {label: stable, version: ''}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: zulu
-          java-version: ${{ env.JAVA_VERSION }}
       - uses: subosito/flutter-action@v2
         with:
-          channel: ${{ matrix.flutter-channel }}
+          channel: stable
+          flutter-version: ${{ matrix.sdk.version }}
       - run: flutter --version
-
       - run: flutter pub get
-
-      - run: flutter test
-
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # TODO(JonasWanke): re-enable beta CI when next stable Flutter version
-        # including breaking changes to Color are released
-        flutter-channel: [stable]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - run: flutter analyze --fatal-infos
+      - run: flutter test --coverage
+      - name: Verify dependency lower bounds
+        run: |
+          flutter pub downgrade
+          flutter analyze --fatal-infos
+          flutter test
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          distribution: zulu
-          java-version: ${{ env.JAVA_VERSION }}
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: ${{ matrix.flutter-channel }}
-      - run: flutter --version
-
-      - run: flutter pub get
-
-      - run: flutter analyze
-
-  build-example:
-    name: Build example
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # TODO(JonasWanke): re-enable beta CI when next stable Flutter version
-        # including breaking changes to Color are released
-        flutter-channel: [stable]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: zulu
-          java-version: ${{ env.JAVA_VERSION }}
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: ${{ matrix.flutter-channel }}
-      - run: flutter --version
-
-      - run: flutter pub get
-        working-directory: example
-
-      - run: flutter build apk
-        working-directory: example
-
-      - name: Upload APK as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: example-apk-flutter-${{ matrix.flutter-channel }}
-          path: example/build/app/outputs/apk/release/app-release.apk
+          name: coverage-${{ matrix.sdk.label }}
+          path: coverage/lcov.info

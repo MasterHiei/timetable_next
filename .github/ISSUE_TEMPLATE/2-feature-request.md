@@ -1,9 +1,11 @@
 ---
-name: 🚀 Feature request
-about: Suggest an idea for this project
+name: Feature request
+about: Describe a use case or missing capability
 title: ''
-labels: 'T: Feat'
+labels: ''
 assignees: ''
 ---
 
-<!-- Thanks for taking the time to file an issue! Please provide a clear and concise description of the problem or missing capability and possibly its solution. -->
+<!-- Changes from upstream: removed upstream-specific labels and template filler. -->
+
+Describe the problem, the proposed behavior and any alternatives considered.

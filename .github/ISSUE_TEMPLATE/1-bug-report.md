@@ -1,21 +1,21 @@
 ---
-name: 🐞 Bug report
-about: Create a report to help us improve
+name: Bug report
+about: Report incorrect behavior
 title: ''
-labels: 'T: Fix'
+labels: ''
 assignees: ''
 ---
 
-<!-- Thanks for taking the time to file an issue! -->
-<!-- Please provide a clear and concise description of what the bug is: -->
+<!-- Changes from upstream: updated the reproduction and environment fields. -->
 
+## Reproduction
 
-<!-- If applicable, add screenshots to help explain your problem: -->
+Include a minimal code sample and steps to reproduce.
 
+## Expected and actual behavior
 
-**Environment:**
-<!-- Please complete the following information: -->
+## Environment
 
-- OS version:  <!-- e.g. Android 9.0.0 -->
-- Flutter version:  <!-- e.g. 2.5.0 -->
-- Package version:  <!-- e.g. 1.0.2 -->
+- Package version:
+- Flutter version:
+- Platform and OS version:
