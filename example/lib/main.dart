@@ -56,17 +56,6 @@ class _TimetableExampleState extends State<TimetableExample>
       dateController: _dateController,
       timeController: _timeController,
       eventBuilder: (context, event) => _buildPartDayEvent(event),
-      // ignore: sort_child_properties_last
-      child: Column(
-        children: [
-          _buildAppBar(),
-          Expanded(
-            child: _isRecurringLayout
-                ? RecurringMultiDateTimetable<BasicEvent>()
-                : MultiDateTimetable<BasicEvent>(),
-          ),
-        ],
-      ),
       eventProvider: eventProviderFromFixedList(positioningDemoEvents),
       allDayEventBuilder: (context, event, info) => BasicAllDayEventWidget(
         event,
@@ -75,13 +64,10 @@ class _TimetableExampleState extends State<TimetableExample>
       ),
       timeOverlayProvider: mergeTimeOverlayProviders([
         positioningDemoOverlayProvider,
-        (context, date) => _draggedEvents
-            .map(
-              (it) =>
-                  it.toTimeOverlay(date: date, widget: BasicEventWidget(it)),
-            )
-            .nonNulls
-            .toList(),
+        (context, date) => [
+          for (final event in _draggedEvents)
+            ?event.toTimeOverlay(date: date, widget: BasicEventWidget(event)),
+        ],
       ]),
       callbacks: TimetableCallbacks(
         onWeekTap: (week) {
@@ -106,6 +92,16 @@ class _TimetableExampleState extends State<TimetableExample>
             _showSnackBar('Tapped on the overflow of $date.'),
       ),
       theme: TimetableThemeData(context),
+      child: Column(
+        children: [
+          _buildAppBar(),
+          Expanded(
+            child: _isRecurringLayout
+                ? RecurringMultiDateTimetable<BasicEvent>()
+                : MultiDateTimetable<BasicEvent>(),
+          ),
+        ],
+      ),
     );
   }
 

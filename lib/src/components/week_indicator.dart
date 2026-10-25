@@ -145,7 +145,6 @@ class _RenderWeekIndicatorText extends RenderBox {
     this._labels,
     this._style,
     this._textDirection,
-    // ignore: avoid_positional_boolean_parameters
     this._alwaysUseNarrowestVariant,
   ) : assert(_labels.isNotEmpty) {
     _generateLabelPainters();
@@ -272,8 +271,7 @@ class WeekIndicatorStyle {
       decoration:
           decoration ??
           BoxDecoration(
-            // ignore: deprecated_member_use
-            color: colorScheme.brightness.contrastColor.withOpacity(0.05),
+            color: colorScheme.brightness.contrastColor.withValues(alpha: 0.05),
             borderRadius: const BorderRadius.all(Radius.circular(4)),
           ),
       padding:

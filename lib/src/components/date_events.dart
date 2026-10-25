@@ -69,9 +69,7 @@ class DateEventsStyle {
   factory DateEventsStyle(
     // To allow future updates to use the context and align the parameters to
     // other style constructors.
-    // ignore: avoid_unused_constructor_parameters
     BuildContext context,
-    // ignore: avoid_unused_constructor_parameters, See above.
     DateTime date, {
     Duration? minEventDuration,
     double? minEventHeight,

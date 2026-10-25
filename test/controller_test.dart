@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/widgets.dart';
 import 'package:timetable_next/timetable_next.dart'
@@ -49,13 +51,15 @@ void main() {
     );
 
     var completed = false;
-    controller
-        .animateTo(
-          TimeRange.fullDay,
-          vsync: tester,
-          duration: const Duration(seconds: 1),
-        )
-        .then((_) => completed = true);
+    unawaited(
+      controller
+          .animateTo(
+            TimeRange.fullDay,
+            vsync: tester,
+            duration: const Duration(seconds: 1),
+          )
+          .then((_) => completed = true),
+    );
 
     await tester.pump();
     expect(controller.value, isNot(TimeRange.fullDay));
@@ -86,12 +90,16 @@ void main() {
     final date = DateController(initialDate: DateTime.utc(2024));
     var timeDone = false;
     var dateDone = false;
-    time
-        .animateTo(TimeRange.fullDay, vsync: tester)
-        .then((_) => timeDone = true);
-    date
-        .animateTo(DateTime.utc(2024, 2), vsync: tester)
-        .then((_) => dateDone = true);
+    unawaited(
+      time
+          .animateTo(TimeRange.fullDay, vsync: tester)
+          .then((_) => timeDone = true),
+    );
+    unawaited(
+      date
+          .animateTo(DateTime.utc(2024, 2), vsync: tester)
+          .then((_) => dateDone = true),
+    );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
     time.cancelAnimation();
@@ -102,12 +110,16 @@ void main() {
     expect(date.value.activity, isA<IdleDateScrollActivity>());
     timeDone = false;
     dateDone = false;
-    time
-        .animateTo(TimeRange.fullDay, vsync: tester)
-        .then((_) => timeDone = true);
-    date
-        .animateTo(DateTime.utc(2024, 3), vsync: tester)
-        .then((_) => dateDone = true);
+    unawaited(
+      time
+          .animateTo(TimeRange.fullDay, vsync: tester)
+          .then((_) => timeDone = true),
+    );
+    unawaited(
+      date
+          .animateTo(DateTime.utc(2024, 3), vsync: tester)
+          .then((_) => dateDone = true),
+    );
     await tester.pump();
     time.dispose();
     date.dispose();
@@ -160,16 +172,20 @@ void main() {
     );
     var firstDone = false;
     var secondDone = false;
-    controller
-        .animateTo(TimeRange.fullDay, vsync: tester)
-        .then((_) => firstDone = true);
+    unawaited(
+      controller
+          .animateTo(TimeRange.fullDay, vsync: tester)
+          .then((_) => firstDone = true),
+    );
     await tester.pump();
-    controller
-        .animateTo(
-          TimeRange(const Duration(hours: 8), const Duration(hours: 16)),
-          vsync: tester,
-        )
-        .then((_) => secondDone = true);
+    unawaited(
+      controller
+          .animateTo(
+            TimeRange(const Duration(hours: 8), const Duration(hours: 16)),
+            vsync: tester,
+          )
+          .then((_) => secondDone = true),
+    );
     await tester.pump();
     expect(firstDone, isTrue);
     expect(secondDone, isFalse);
@@ -182,10 +198,12 @@ void main() {
     tester,
   ) async {
     final controller = DateController(initialDate: DateTime.utc(2024));
-    controller.animateTo(
-      DateTime.utc(2024, 1, 8),
-      vsync: tester,
-      duration: const Duration(seconds: 1),
+    unawaited(
+      controller.animateTo(
+        DateTime.utc(2024, 1, 8),
+        vsync: tester,
+        duration: const Duration(seconds: 1),
+      ),
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
@@ -194,16 +212,18 @@ void main() {
     controller.addListener(() {
       if (!reentered && controller.value.activity is IdleDateScrollActivity) {
         reentered = true;
-        controller
-            .animateTo(
-              DateTime.utc(2024, 3),
-              vsync: tester,
-              duration: const Duration(seconds: 2),
-            )
-            .then((_) => replacementDone = true);
+        unawaited(
+          controller
+              .animateTo(
+                DateTime.utc(2024, 3),
+                vsync: tester,
+                duration: const Duration(seconds: 2),
+              )
+              .then((_) => replacementDone = true),
+        );
       }
     });
-    controller.animateTo(DateTime.utc(2024, 2), vsync: tester);
+    unawaited(controller.animateTo(DateTime.utc(2024, 2), vsync: tester));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
     controller.cancelAnimation();
@@ -216,13 +236,13 @@ void main() {
     tester,
   ) async {
     final controller = DateController(initialDate: DateTime.utc(2024));
-    controller.animateTo(DateTime.utc(2024, 2), vsync: tester);
+    unawaited(controller.animateTo(DateTime.utc(2024, 2), vsync: tester));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
     var notified = false;
     controller.addListener(() {
       notified = true;
-      controller.animateTo(DateTime.utc(2024, 3), vsync: tester);
+      unawaited(controller.animateTo(DateTime.utc(2024, 3), vsync: tester));
     });
     controller.dispose();
     await tester.pump(const Duration(seconds: 1));

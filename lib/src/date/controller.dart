@@ -109,7 +109,7 @@ class DateController extends ValueNotifier<DatePageValueWithScrollActivity> {
     final targetDatePageValue = DatePageValue(visibleRange, targetPage);
     controller.addListener(() {
       value = value.copyWithActivity(
-        page: lerpDouble(previousPage, targetPage, controller.value)!,
+        page: lerpDouble(previousPage, targetPage, controller.value),
         activity: controller.isAnimating
             ? DrivenDateScrollActivity(targetDatePageValue)
             : const IdleDateScrollActivity(),

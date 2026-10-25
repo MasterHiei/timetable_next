@@ -26,6 +26,9 @@ jobs:
           flutter-version: ${{ matrix.sdk.version }}
       - run: flutter --version
       - run: flutter pub get
+      - name: Verify Dart formatting
+        if: matrix.sdk.label == 'stable'
+        run: dart format --output=none --set-exit-if-changed lib test example/lib example/integration_test example/test_driver
       - run: flutter analyze --fatal-infos
       - run: flutter test --coverage
       - name: Verify dependency lower bounds

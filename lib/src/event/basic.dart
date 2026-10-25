@@ -24,7 +24,6 @@ class BasicEvent extends Event {
   ///
   /// This is not used by Timetable itself, but can be handy, e.g., when
   /// implementing drag & drop.
-  // ignore: no-object-declaration
   final Object id;
 
   /// A title displayed to the user.

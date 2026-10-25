@@ -78,9 +78,8 @@ class _MonthPageViewState extends State<MonthPageView> {
         builder: (context, child) => ImmediateSizedBox(
           // By using a lambda, the `heightGetter`'s identity changes with every
           // call, forcing the `ImmediateSizedBox` to run a new layout pass.
-          // ignore: unnecessary_lambdas
           heightGetter: () => _getHeight(),
-          child: child!,
+          child: child,
         ),
         child: child,
       );

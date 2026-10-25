@@ -92,7 +92,7 @@ class _DatePageViewState extends State<DatePageView> {
         valueListenable: _controller!,
         builder: (context, pageValue, child) => ImmediateSizedBox(
           heightGetter: () => _getHeight(pageValue),
-          child: child!,
+          child: child,
         ),
         child: child,
       );

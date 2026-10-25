@@ -196,9 +196,9 @@ class MonthWidgetStyle {
           weeksDecoration ??
           (removeIndividualWeekDecorations
               ? BoxDecoration(
-                  color: theme.colorScheme.brightness.contrastColor
-                      // ignore: deprecated_member_use
-                      .withOpacity(0.05),
+                  color: theme.colorScheme.brightness.contrastColor.withValues(
+                    alpha: 0.05,
+                  ),
                   borderRadius: const BorderRadius.all(Radius.circular(4)),
                 )
               : const BoxDecoration()),

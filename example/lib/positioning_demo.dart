@@ -3,8 +3,6 @@ import 'dart:math';
 
 import 'package:black_hole_flutter/black_hole_flutter.dart';
 import 'package:flutter/material.dart';
-// ignore: implementation_imports
-import 'package:timetable_next/src/utils.dart';
 import 'package:timetable_next/timetable_next.dart';
 
 final positioningDemoEvents = <BasicEvent>[
@@ -184,8 +182,12 @@ class _DemoEvent extends BasicEvent {
          id: '$demoId-$eventId',
          title: '$demoId-$eventId',
          backgroundColor: _getColor('$demoId-$eventId'),
-         start: DateTimeTimetable.today() + demoId.days + start,
-         end: DateTimeTimetable.today() + (demoId + endDateOffset).days + end,
+         start: DateTimeTimetable.today()
+             .add(Duration(days: demoId))
+             .add(start),
+         end: DateTimeTimetable.today()
+             .add(Duration(days: demoId + endDateOffset))
+             .add(end),
        );
 
   _DemoEvent.allDay(int id, int startOffset, int length)
@@ -193,8 +195,10 @@ class _DemoEvent extends BasicEvent {
         id: 'a-$id',
         title: 'a-$id',
         backgroundColor: _getColor('a-$id'),
-        start: DateTimeTimetable.today() + startOffset.days,
-        end: DateTimeTimetable.today() + (startOffset + length).days,
+        start: DateTimeTimetable.today().add(Duration(days: startOffset)),
+        end: DateTimeTimetable.today().add(
+          Duration(days: startOffset + length),
+        ),
       );
 
   static Color _getColor(String id) {
@@ -211,16 +215,29 @@ List<TimeOverlay> positioningDemoOverlayProvider(
   assert(date.debugCheckIsValidTimetableDate());
 
   final widget = ColoredBox(
-    // ignore: deprecated_member_use
-    color: context.theme.brightness.contrastColor.withOpacity(0.1),
+    color: context.theme.brightness.contrastColor.withValues(alpha: 0.1),
   );
 
   if (DateTime.monday <= date.weekday && date.weekday <= DateTime.friday) {
     return [
-      TimeOverlay(start: 0.hours, end: 8.hours, widget: widget),
-      TimeOverlay(start: 20.hours, end: 24.hours, widget: widget),
+      TimeOverlay(
+        start: Duration.zero,
+        end: const Duration(hours: 8),
+        widget: widget,
+      ),
+      TimeOverlay(
+        start: const Duration(hours: 20),
+        end: const Duration(days: 1),
+        widget: widget,
+      ),
     ];
   } else {
-    return [TimeOverlay(start: 0.hours, end: 24.hours, widget: widget)];
+    return [
+      TimeOverlay(
+        start: Duration.zero,
+        end: const Duration(days: 1),
+        widget: widget,
+      ),
+    ];
   }
 }

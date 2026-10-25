@@ -68,8 +68,9 @@ class _MultiDateContentState<E extends Event>
 
   @override
   Widget build(BuildContext context) {
+    final controller = DefaultDateController.of(context)!;
     final datePages = DatePageView(
-      controller: DefaultDateController.of(context)!,
+      controller: controller,
       builder: (context, date) => DateContent<E>(
         date: date,
         events:
@@ -167,15 +168,12 @@ typedef PartDayDragEndCallbackWithGeometryKey =
 typedef PartDayDragCanceledCallbackRaw =
     void Function(
       GlobalKey<MultiDateContentGeometry>? geometryKey,
-      // ignore: avoid_positional_boolean_parameters
       bool wasMoved,
     );
-// ignore: avoid_positional_boolean_parameters
 typedef PartDayDragCanceledCallback = void Function(bool wasMoved);
 typedef PartDayDragCanceledCallbackWithGeometryKey =
     void Function(
       GlobalKey<MultiDateContentGeometry> geometryKey,
-      // ignore: avoid_positional_boolean_parameters
       bool wasMoved,
     );
 

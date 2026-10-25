@@ -38,6 +38,7 @@ enum TimeOverlayPosition { behindEvents, inFrontOfEvents }
 typedef TimeOverlayProvider =
     List<TimeOverlay> Function(BuildContext context, DateTime date);
 
+// Keep the public provider value rather than changing it to a function declaration.
 // ignore: prefer_function_declarations_over_variables
 final TimeOverlayProvider emptyTimeOverlayProvider = (context, date) {
   assert(date.debugCheckIsValidTimetableDate());

@@ -12,11 +12,14 @@ Preserve public types and documented semantics. Behavioral fixes should include 
 
 ```sh
 flutter pub get
+dart format --output=none --set-exit-if-changed lib test example/lib example/integration_test example/test_driver
 flutter analyze --fatal-infos
 flutter test
 ```
 
-Format changed Dart files. Dependency and platform changes require the corresponding [QA checks](doc/QA.md). The iOS example uses Swift Package Manager with the project setting in `example/pubspec.yaml`.
+Use current stable Flutter for formatting. To apply formatting, run `dart format lib test example/lib example/integration_test example/test_driver`. Dependency and platform changes require the corresponding [QA checks](doc/QA.md). The iOS example uses Swift Package Manager with the project setting in `example/pubspec.yaml`.
+
+Await asynchronous work when its completion is required. Use `unawaited` from `dart:async` for intentional concurrency, including animations advanced by widget-test pumps; do not change their ordering just to satisfy a lint. Explain necessary diagnostic suppressions immediately above the ignore. Remove obsolete suppressions when reviewing SDK upgrades, checking both supported SDK endpoints before removal.
 
 Keep example lockfiles and Gradle wrapper sources versioned. Do not commit generated output, machine configuration, credentials or raw verification logs. Root `.gitignore` owns shared exclusions; keep the shared `.pubignore` rules aligned.
 

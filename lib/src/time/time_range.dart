@@ -52,7 +52,6 @@ class TimeRange {
   bool contains(TimeRange other) =>
       startTime <= other.startTime && other.endTime <= endTime;
 
-  // ignore: prefer_constructors_over_static_methods
   static TimeRange lerp(TimeRange a, TimeRange b, double t) {
     return TimeRange(
       lerpDuration(a.startTime, b.startTime, t),

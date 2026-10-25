@@ -4,18 +4,21 @@
 
 ```sh
 flutter pub get
+dart format --output=none --set-exit-if-changed lib test example/lib example/integration_test example/test_driver
 flutter analyze --fatal-infos
 flutter test --coverage
 ```
 
-Run on Flutter 3.38.1 and current stable. In a separate checkout, repeat analysis and tests after `flutter pub downgrade` to validate dependency lower bounds.
+Run analysis and tests on Flutter 3.38.1 and current stable; formatting is gated on current stable. In a separate checkout, repeat analysis and tests after `flutter pub downgrade` to validate dependency lower bounds.
+
+Keep intentional animation concurrency explicit with `unawaited`, preserving virtual-time advancement and completion assertions. Check necessary ignores on both SDK endpoints: SDK annotations can make an ignore or `unawaited` redundant on one endpoint but necessary on the other. Do not enable `unnecessary_ignore` or `unnecessary_unawaited` as cross-SDK gates without resolving that conflict.
 
 ## Behavioral coverage
 
 | Area | Required checks |
 |---|---|
 | Dates | Negative/positive pages, exact ties, all weekdays, one-sided/two-sided limits, leap days and cross-year ranges |
-| Events | Intersection rules, adjacency, containment, midnight, zero duration, microseconds and the 24-hour all-day boundary |
+| Events | Intersection rules, adjacency, containment, midnight, zero duration, microseconds, the 24-hour all-day boundary, and overlay exclusion/clipping/widget identity/paint order |
 | Controllers | Futures during/completing/interrupted animations, reentry, disposal, shared-view limits and replacement controllers |
 | Views | Three layouts, empty/overlapping/all-day events, navigation, zoom, tap and drag coordinates |
 | Configuration | English/Simplified Chinese, light/dark themes, text scales 1/2, sizes 320×640 and 800×600 |

@@ -121,7 +121,7 @@ class _TimeZoomState extends State<TimeZoom>
           });
         }
 
-        _scrollController ??= _ScrollController(
+        final scrollController = _scrollController ??= _ScrollController(
           getOffset: () => _outerOffset,
           setOffset: _setOffset,
         );
@@ -148,7 +148,7 @@ class _TimeZoomState extends State<TimeZoom>
           },
           child: ClipRect(
             child: _NoDragSingleChildScrollView(
-              controller: _scrollController!,
+              controller: scrollController,
               child: ValueListenableBuilder(
                 valueListenable: _controller!,
                 builder: (context, _, child) {
@@ -247,7 +247,7 @@ class _TimeZoomState extends State<TimeZoom>
         );
     _animationController.duration = finalTime.seconds;
     _animation!.addListener(_onAnimate);
-    _animationController.forward();
+    unawaited(_animationController.forward());
   }
 
   void _onAnimate() {

@@ -123,7 +123,6 @@ class MultiDateEventHeaderStyle {
   factory MultiDateEventHeaderStyle(
     // To allow future updates to use the context and align the parameters to
     // other style constructors.
-    // ignore: avoid_unused_constructor_parameters
     BuildContext context, {
     double? eventHeight,
     int? maxEventRows,

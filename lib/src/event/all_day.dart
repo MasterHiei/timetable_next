@@ -172,11 +172,9 @@ class AllDayEventBorderRadii {
           radii.cornerRadius.bottomLeft.x + radii.cornerRadius.bottomRight.x,
         );
 
-    // ignore: omit_local_variable_types
     final double left = info.hiddenStartDays == 0
         ? 0
         : math.min(0, size.width - minWidth);
-    // ignore: omit_local_variable_types
     final double right = info.hiddenEndDays == 0
         ? size.width
         : math.max(size.width, minWidth);
