@@ -159,7 +159,7 @@ jobs:
     needs: resolve
     if: needs.resolve.outputs.platforms != '[]'
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 30
+    timeout-minutes: ${{ matrix.platform == 'ios' && 40 || 30 }}
     strategy:
       fail-fast: false
       matrix:
@@ -244,8 +244,15 @@ jobs:
           script: cd example && flutter test integration_test/app_test.dart -d emulator-5554
       - name: Run iOS interaction on an available iPhone with bounded startup
         if: matrix.platform == 'ios'
-        timeout-minutes: 25
+        timeout-minutes: 30
         run: python3 tool/ios_test.py
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure() && matrix.platform == 'ios'
+        with:
+          name: diagnostics-ios
+          path: build/diagnostics/ios
+          if-no-files-found: ignore
+          retention-days: 14
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure() && matrix.platform == 'web'
         with:

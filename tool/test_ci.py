@@ -1,7 +1,10 @@
 import io
 import json
+import os
 from pathlib import Path
+import signal
 import subprocess
+import sys
 import tarfile
 import tempfile
 import unittest
@@ -73,6 +76,119 @@ class ChecksTest(unittest.TestCase):
         self.assertEqual(ios_test.select_device({older: [phone], newer: [phone]}), (newer, phone))
         with self.assertRaises(ValueError):
             ios_test.select_device({newer: [{**phone, "isAvailable": False}]})
+
+    def ios_devices(self, state="Shutdown"):
+        return json.dumps({"devices": {"com.apple.CoreSimulator.SimRuntime.iOS-26-5": [dict(name="iPhone 17", isAvailable=True, udid="fixture", state=state)]}})
+
+    def test_ios_first_failure_survives_diagnostics_and_cleanup_failures(self):
+        for stage in ("startup", "launch", "test"):
+            with self.subTest(stage=stage), tempfile.TemporaryDirectory() as temporary:
+                failure = subprocess.TimeoutExpired("flutter" if stage == "test" else stage, 1200)
+                events = []
+                process = mock.Mock(pid=123, stdout=io.StringIO("progress\n"))
+                process.wait.side_effect = failure
+                def run(command, **kwargs):
+                    if "bootstatus" in command and stage == "startup":
+                        raise failure
+                    if "shutdown" in command:
+                        events.append("shutdown")
+                        raise subprocess.TimeoutExpired(command, 30)
+                def diagnose(*args):
+                    events.append("diagnostics")
+                    raise OSError("diagnostics unavailable")
+                def stop(*args):
+                    events.append("terminate")
+                    raise OSError("cleanup unavailable")
+                with mock.patch.object(ci, "ROOT", Path(temporary)), mock.patch.object(ios_test.sys, "stdout", io.StringIO()) as console, mock.patch.object(ios_test.subprocess, "check_output", return_value=self.ios_devices()), mock.patch.object(ios_test.subprocess, "run", side_effect=run), mock.patch.object(ios_test.subprocess, "Popen", side_effect=failure if stage == "launch" else None, return_value=process) as popen, mock.patch.object(ios_test, "capture_diagnostics", side_effect=diagnose), mock.patch.object(ios_test, "stop_process", side_effect=stop):
+                    with self.assertRaises(subprocess.TimeoutExpired) as caught:
+                        ios_test.main()
+                self.assertIs(caught.exception, failure)
+                self.assertEqual(events, ["diagnostics", "terminate", "shutdown"] if stage == "test" else ["diagnostics", "shutdown"])
+                self.assertEqual(popen.call_count, 0 if stage == "startup" else 1)
+                self.assertIn("Could not shut down simulator", console.getvalue())
+                if stage == "test":
+                    process.wait.assert_called_once_with(timeout=1200)
+
+    def test_ios_test_failure_is_not_retried_and_booted_device_is_preserved(self):
+        for result in (0, 1):
+            with self.subTest(result=result), tempfile.TemporaryDirectory() as temporary:
+                process = mock.Mock(pid=123, stdout=io.StringIO("progress\n"))
+                process.wait.return_value = result
+                with mock.patch.object(ci, "ROOT", Path(temporary)), mock.patch.object(ios_test.sys, "stdout", io.StringIO()), mock.patch.object(ios_test.subprocess, "check_output", return_value=self.ios_devices("Booted")), mock.patch.object(ios_test.subprocess, "run") as run, mock.patch.object(ios_test.subprocess, "Popen", return_value=process) as popen, mock.patch.object(ios_test, "capture_diagnostics") as diagnose, mock.patch.object(ios_test, "stop_process"):
+                    if result:
+                        with self.assertRaises(subprocess.CalledProcessError) as caught:
+                            ios_test.main()
+                        self.assertEqual(caught.exception.returncode, result)
+                    else:
+                        ios_test.main()
+                run.assert_called_once_with(["xcrun", "simctl", "bootstatus", "fixture", "-b"], check=True, timeout=300)
+                self.assertEqual(popen.call_count, 1)
+                self.assertEqual(popen.call_args.args[0], ["flutter", "test", "integration_test/app_test.dart", "-d", "fixture", "--verbose"])
+                self.assertTrue(popen.call_args.kwargs["start_new_session"])
+                self.assertEqual(diagnose.call_count, int(bool(result)))
+
+    def test_ios_diagnostics_are_bounded_scoped_and_redacted(self):
+        process = mock.Mock(pid=123)
+        responses = [
+            "1 0 123 00:01 S flutter\n2 0 999 00:01 S unrelated\n",
+            self.ios_devices(),
+            "456 0 dev.liu.timetablenext.example token=fixture-secret\n789 0 unrelated.app\n",
+        ]
+        with tempfile.TemporaryDirectory() as temporary, mock.patch.object(ci, "ROOT", Path(temporary)), mock.patch.object(ios_test.subprocess, "run", side_effect=[subprocess.CompletedProcess([], 0, stdout=text) for text in responses]) as run:
+            ios_test.capture_diagnostics("fixture", process)
+            output = (Path(temporary) / "build/diagnostics/ios/failure.log").read_text()
+        self.assertEqual(run.call_count, 3)
+        self.assertTrue(all(0 < call.kwargs["timeout"] <= 10 for call in run.call_args_list))
+        self.assertLessEqual(sum(call.kwargs["timeout"] for call in run.call_args_list), 30)
+        self.assertIn("flutter", output)
+        self.assertIn('"udid": "fixture"', output)
+        self.assertIn("dev.liu.timetablenext.example", output)
+        self.assertNotIn("unrelated", output)
+        self.assertNotIn("fixture-secret", output)
+        with tempfile.TemporaryDirectory() as temporary, mock.patch.object(ci, "ROOT", Path(temporary)), mock.patch.object(ios_test.sys, "stdout", io.StringIO()), mock.patch.object(ios_test.subprocess, "run", side_effect=subprocess.TimeoutExpired("snapshot", 10)) as run:
+            ios_test.capture_diagnostics("fixture", process)
+            self.assertEqual(run.call_count, 3)
+            self.assertEqual((Path(temporary) / "build/diagnostics/ios/failure.log").read_text().count("Could not capture"), 3)
+
+    def test_ios_termination_targets_only_its_process_group_with_a_fixed_budget(self):
+        process, reader = mock.Mock(pid=123), mock.Mock()
+        process.wait.side_effect = subprocess.TimeoutExpired("flutter", 10)
+        reader.is_alive.return_value = False
+        with mock.patch.object(ios_test.os, "killpg") as kill, mock.patch.object(ios_test.time, "monotonic", side_effect=[0, 0, 10, 15]):
+            ios_test.stop_process(process, reader)
+        self.assertEqual(kill.call_args_list, [mock.call(123, signal.SIGTERM), mock.call(123, signal.SIGKILL)])
+        self.assertEqual(process.wait.call_args_list, [mock.call(timeout=10), mock.call(timeout=5)])
+        reader.join.assert_called_once_with(timeout=0)
+
+    def test_ios_streams_large_real_process_output_without_exposing_credentials(self):
+        credentials = ["http://127.0.0.1:1234/vm-secret=/", "ws://localhost:1234/dds-secret=/ws", "Authorization: Bearer bearer-secret", '"access_token": "json-secret"', "--vm-service-auth-code=code-secret", "password='password-secret'", "client_secret=client-secret"]
+        real_popen = subprocess.Popen
+        def launch(command, **kwargs):
+            script = "import sys; sys.stdout.write(" + repr("\n".join(credentials) + "\n") + "); sys.stdout.write(('x' * 200 + '\\n') * 3000)"
+            return real_popen([sys.executable, "-c", script], **kwargs)
+        with tempfile.TemporaryDirectory() as temporary, mock.patch.object(ci, "ROOT", Path(temporary)), mock.patch.object(ios_test.sys, "stdout", io.StringIO()) as console, mock.patch.object(ios_test.subprocess, "check_output", return_value=self.ios_devices("Booted")), mock.patch.object(ios_test.subprocess, "run"), mock.patch.object(ios_test.subprocess, "Popen", side_effect=launch) as popen:
+            (Path(temporary) / "example").mkdir()
+            ios_test.main()
+            output = (Path(temporary) / "build/diagnostics/ios/flutter-test.log").read_text()
+        self.assertEqual(popen.call_count, 1)
+        self.assertEqual(output.count("x" * 200), 3000)
+        self.assertIn(output, console.getvalue())
+        for secret in ("vm-secret", "dds-secret", "bearer-secret", "json-secret", "code-secret", "password-secret", "client-secret"):
+            self.assertNotIn(secret, output)
+            self.assertNotIn(secret, console.getvalue())
+
+    @unittest.skipUnless(os.name == "posix", "iOS process groups require POSIX")
+    def test_ios_termination_reaps_a_real_process(self):
+        process = subprocess.Popen([sys.executable, "-c", "import time; print('ready', flush=True); time.sleep(60)"], stdout=subprocess.PIPE, text=True, start_new_session=True)
+        try:
+            self.assertEqual(process.stdout.readline(), "ready\n")
+            ios_test.stop_process(process, None)
+            self.assertEqual(process.returncode, -signal.SIGTERM)
+        finally:
+            if process.poll() is None:
+                os.killpg(process.pid, signal.SIGKILL)
+                process.wait(timeout=5)
+            process.stdout.close()
 
     def test_coverage_counts_unique_lines_and_requires_complete_production_report(self):
         with tempfile.TemporaryDirectory() as temporary:
