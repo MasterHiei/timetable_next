@@ -79,60 +79,93 @@ void main() {
     },
   );
 
+  test('time controller limits and direct jumps preserve bounds', () {
+    final bounded = TimeController(
+      minDuration: const Duration(hours: 1),
+      maxDuration: const Duration(hours: 4),
+      maxRange: TimeRange(const Duration(hours: 6), const Duration(hours: 18)),
+    );
+    expect(
+      bounded.value,
+      TimeRange(const Duration(hours: 10), const Duration(hours: 14)),
+    );
+    expect(
+      () => bounded.value = TimeRange(Duration.zero, const Duration(hours: 4)),
+      throwsAssertionError,
+    );
+    bounded.jumpTo(
+      TimeRange(const Duration(hours: 8), const Duration(hours: 12)),
+    );
+    expect(bounded.value.startTime, const Duration(hours: 8));
+    final registration = bounded.registerClient(200);
+    registration.notifyHeightChanged(200);
+    registration.unregister();
+    bounded.dispose();
+  });
+
+  testWidgets('full-day animation reaches its target and completes', (
+    tester,
+  ) async {
+    final full = TimeController(
+      initialRange: TimeRange(
+        const Duration(hours: 8),
+        const Duration(hours: 12),
+      ),
+    );
+    var done = false;
+    unawaited(
+      full.animateToShowFullDay(vsync: tester).then((_) => done = true),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 201));
+    expect(done, isTrue);
+    expect(full.value, TimeRange.fullDay);
+    full.dispose();
+  });
+
+  test('jumpToToday reveals today in the aligned week', () {
+    final before = DateTimeTimetable.today();
+    final date = DateController(
+      initialDate: before.subtract(const Duration(days: 14)),
+    );
+    addTearDown(date.dispose);
+    expect(date.visibleDates.value.includes(before), isFalse);
+
+    date.jumpToToday();
+
+    final after = DateTimeTimetable.today();
+    expect(date.date.value.weekday, DateTime.monday);
+    expect(
+      date.visibleDates.value.includes(before) ||
+          date.visibleDates.value.includes(after),
+      isTrue,
+    );
+  });
+
   testWidgets(
-    'time controller limits, animated full day and direct jumps preserve bounds',
+    'animateToToday reveals today and completes in the aligned week',
     (tester) async {
-      final bounded = TimeController(
-        minDuration: const Duration(hours: 1),
-        maxDuration: const Duration(hours: 4),
-        maxRange: TimeRange(
-          const Duration(hours: 6),
-          const Duration(hours: 18),
-        ),
+      final before = DateTimeTimetable.today();
+      final date = DateController(
+        initialDate: before.subtract(const Duration(days: 14)),
       );
-      expect(
-        bounded.value,
-        TimeRange(const Duration(hours: 10), const Duration(hours: 14)),
-      );
-      expect(
-        () =>
-            bounded.value = TimeRange(Duration.zero, const Duration(hours: 4)),
-        throwsAssertionError,
-      );
-      bounded.jumpTo(
-        TimeRange(const Duration(hours: 8), const Duration(hours: 12)),
-      );
-      expect(bounded.value.startTime, const Duration(hours: 8));
-      final registration = bounded.registerClient(200);
-      registration.notifyHeightChanged(200);
-      registration.unregister();
-      bounded.dispose();
-      final full = TimeController(
-        initialRange: TimeRange(
-          const Duration(hours: 8),
-          const Duration(hours: 12),
-        ),
-      );
-      var done = false;
-      unawaited(
-        full.animateToShowFullDay(vsync: tester).then((_) => done = true),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 201));
-      expect(done, isTrue);
-      expect(full.value, TimeRange.fullDay);
-      full.dispose();
-      final date = DateController(initialDate: DateTime.utc(2024));
-      date.jumpToToday();
-      expect(date.date.value.weekday, DateTime.monday);
+      addTearDown(date.dispose);
+      expect(date.visibleDates.value.includes(before), isFalse);
       var dateDone = false;
       unawaited(
         date.animateToToday(vsync: tester).then((_) => dateDone = true),
       );
       await tester.pump();
+      expect(dateDone, isFalse);
       await tester.pump(const Duration(milliseconds: 201));
       expect(dateDone, isTrue);
-      date.dispose();
+      final after = DateTimeTimetable.today();
+      expect(date.date.value.weekday, DateTime.monday);
+      expect(
+        date.visibleDates.value.includes(before) ||
+            date.visibleDates.value.includes(after),
+        isTrue,
+      );
     },
   );
 }

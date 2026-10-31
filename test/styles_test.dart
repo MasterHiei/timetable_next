@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:timetable_next/timetable_next.dart';
 
 void main() {
-  testWidgets('style copies are immutable values and overrides reach widgets', (
+  testWidgets('style and theme copies preserve immutable values', (
     tester,
   ) async {
     late BuildContext context;
@@ -160,30 +160,6 @@ void main() {
     }
     expect(changedDate.padding, padding);
     expect(changedWeek.labels, ['wide label', 'W9']);
-    final eventCopy = basicEvent.copyWith();
-    expect(identical(eventCopy, basicEvent), isFalse);
-    expect(
-      (
-        eventCopy.id,
-        eventCopy.title,
-        eventCopy.backgroundColor,
-        eventCopy.start,
-        eventCopy.end,
-      ),
-      (1, 'value', Colors.blue, date, date.add(const Duration(days: 1))),
-    );
-    expect(
-      basicEvent
-          .copyWith(
-            id: 2,
-            title: 'other',
-            backgroundColor: Colors.red,
-            start: date.add(const Duration(hours: 1)),
-            end: date.add(const Duration(days: 2)),
-          )
-          .title,
-      'other',
-    );
 
     final theme = TimetableThemeData(context);
     expect(theme.copyWith(), theme);
@@ -207,18 +183,88 @@ void main() {
     expect(custom, isNot(theme));
     expect(custom.startOfWeek, DateTime.sunday);
     expect(theme.startOfWeek, DateTime.monday);
+  });
+
+  test('event copies retain fields and apply overrides without mutation', () {
+    final date = DateTime.utc(2024, 2, 26);
+    final event = BasicEvent(
+      id: 1,
+      title: 'value',
+      backgroundColor: Colors.blue,
+      start: date,
+      end: date.add(const Duration(days: 1)),
+    );
+    final copy = event.copyWith();
+    final changed = event.copyWith(
+      id: 2,
+      title: 'other',
+      backgroundColor: Colors.red,
+      start: date.add(const Duration(hours: 1)),
+      end: date.add(const Duration(days: 2)),
+    );
+    expect(
+      (copy.id, copy.title, copy.backgroundColor, copy.start, copy.end),
+      (1, 'value', Colors.blue, date, date.add(const Duration(days: 1))),
+    );
+    expect(
+      (
+        changed.id,
+        changed.title,
+        changed.backgroundColor,
+        changed.start,
+        changed.end,
+      ),
+      (
+        2,
+        'other',
+        Colors.red,
+        date.add(const Duration(hours: 1)),
+        date.add(const Duration(days: 2)),
+      ),
+    );
+    expect(
+      (event.id, event.title, event.backgroundColor, event.start, event.end),
+      (1, 'value', Colors.blue, date, date.add(const Duration(days: 1))),
+    );
+  });
+
+  testWidgets('theme label and text-style overrides reach indicators', (
+    tester,
+  ) async {
+    final date = DateTime.utc(2024, 2, 26);
+    const text = TextStyle(fontSize: 17, color: Colors.purple);
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: const [TimetableLocalizationsDelegate()],
         home: Scaffold(
-          body: TimetableTheme(
-            data: custom,
-            child: Column(
-              children: [
-                DateIndicator(date),
-                WeekdayIndicator(date),
-                TimeIndicator(time: const Duration(hours: 9)),
-                MonthIndicator(DateTime.utc(2024, 2)),
-              ],
+          body: Builder(
+            builder: (context) => TimetableTheme(
+              data: TimetableThemeData(context).copyWith(
+                dateIndicatorStyleProvider: (value) => DateIndicatorStyle(
+                  context,
+                  value,
+                ).copyWith(textStyle: text, label: 'custom date'),
+                weekdayIndicatorStyleProvider: (value) => WeekdayIndicatorStyle(
+                  context,
+                  value,
+                ).copyWith(textStyle: text, label: 'custom weekday'),
+                timeIndicatorStyleProvider: (value) => TimeIndicatorStyle(
+                  context,
+                  value,
+                ).copyWith(textStyle: text, label: 'custom time'),
+                monthIndicatorStyleProvider: (value) => MonthIndicatorStyle(
+                  context,
+                  value,
+                ).copyWith(textStyle: text, label: 'custom month'),
+              ),
+              child: Column(
+                children: [
+                  DateIndicator(date),
+                  WeekdayIndicator(date),
+                  TimeIndicator(time: const Duration(hours: 9)),
+                  MonthIndicator(DateTime.utc(2024, 2)),
+                ],
+              ),
             ),
           ),
         ),

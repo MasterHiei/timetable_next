@@ -49,13 +49,13 @@ Archive and platform jobs have independent checkouts. There are no scheduled run
 
 ## Test design
 
-- Use fixed UTC data and independent expected values. Test current-date entrypoints through invariants.
+- Use fixed UTC data and independent expected values. For Today navigation, take before/after date snapshots and check the visible range and alignment.
 - Keep snapping ties, negative pages, all week starts, range limits, leap days and cross-year cases. Separate snapping from visible-day-count boundary tests.
 - Cover event adjacency, overlap, midnight, zero duration, microseconds, clipping and identity.
 - Check animation completion/interruption/replacement/reentry/disposal and listener/timer/view-registration cleanup.
 - Exercise the three layouts with pairwise size/locale/theme/text-scale fixtures; keep narrow Chinese large-text cases and individual defect regressions.
 - Assert rendered results and user-visible updates. Precise drag-coordinate arithmetic belongs in widget tests; platform tests exercise gestures and callbacks without repeating that arithmetic.
-- Preserve public immutable copy/equality contracts. Do not add self-comparisons, incidental diagnostic-string assertions or tests of Flutter's own behavior to increase coverage.
+- Preserve public immutable copy/equality contracts. Assert retained and overridden fields without requiring a new instance. Exercise diagnostic regressions without depending on incidental text. Avoid self-comparisons and tests of Flutter's own behavior to increase coverage.
 
 Production `lib/` line coverage must be >=95% before rounding. The checker merges duplicate records and rejects empty, incomplete or missing-module reports. No production exclusions or coverage-ignore annotations are permitted. Coverage is a guard, not proof of behavior.
 

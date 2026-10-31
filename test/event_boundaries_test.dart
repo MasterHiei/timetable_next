@@ -18,16 +18,24 @@ void main() {
     ]) {
       final event = TestEvent(midnight, midnight.add(duration));
       final provider = eventProviderFromFixedList([event]);
-      for (final point in [
-        midnight.subtract(const Duration(microseconds: 1)),
-        midnight,
-        event.end.subtract(const Duration(microseconds: 1)),
-        event.end,
+      for (final (name, point, expected) in [
+        (
+          'before start',
+          midnight.subtract(const Duration(microseconds: 1)),
+          false,
+        ),
+        ('at start', midnight, true),
+        (
+          'before end',
+          event.end.subtract(const Duration(microseconds: 1)),
+          true,
+        ),
+        ('at end', event.end, false),
       ]) {
         expect(
           provider(Interval(point, point)).contains(event),
-          !point.isBefore(midnight) && point.isBefore(event.end),
-          reason: 'duration=$duration point=$point',
+          expected,
+          reason: '$name: duration=$duration point=$point',
         );
       }
     }

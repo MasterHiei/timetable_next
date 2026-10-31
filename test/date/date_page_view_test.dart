@@ -26,7 +26,7 @@ void main() {
           viewportBuilder: (context, position) {
             expect(owner.hasClients, isTrue);
             expect(position.hasPixels, isFalse);
-            expect(position.toString(), contains('owner:'));
+            expect(position.toString, returnsNormally);
             expect(position.hasPixels, isFalse);
             expect(date.value, initialValue);
             expect(notifications, 0);
@@ -84,7 +84,7 @@ void main() {
             find.byType(Scrollable),
           );
           expect(scrollable.position.hasPixels, isTrue);
-          expect(scrollable.position.toString(), contains('owner:'));
+          expect(scrollable.position.toString, returnsNormally);
 
           date.jumpTo(DateTime.utc(2024, 2, 27));
           await tester.pumpAndSettle();
