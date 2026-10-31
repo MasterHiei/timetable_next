@@ -75,8 +75,6 @@ CI writes the package version and source revision to `release.json`, then serves
 
 The archive check runs publish dry-run, creates one candidate and records version, revision and SHA-256. An independent consumer on stable uses only extracted archive contents to verify public entries, `dart_date.Interval` and widget rendering.
 
-When the archive check is selected, a release rehearsal waits for all package, consumer and platform checks to pass. It downloads the candidate and Pages archives, checks their version and revision, and smoke-tests the unpacked Web bundle at `/timetable_next/`. Release notes come from the candidate's changelog and are uploaded only after the rehearsal passes. The required gate includes this result; PR runs do not publish or deploy. Tag releases consume the verified artifacts and release notes. PR artifacts use GitHub's test merge revision; tag artifacts use the tag commit.
-
 ## Workflow maintenance
 
 Keep Actions pinned to full commits with version comments. CI runs actionlint for workflow syntax and unit tests for project-owned selection, gate, coverage, version-ordering and artifact-identity logic.
