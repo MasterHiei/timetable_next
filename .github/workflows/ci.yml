@@ -1,0 +1,274 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      version:
+        value: ${{ jobs.archive.outputs.version }}
+      sha256:
+        value: ${{ jobs.archive.outputs.sha256 }}
+      dart:
+        value: ${{ jobs.resolve.outputs.dart }}
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+env:
+  NO_PROXY: localhost,127.0.0.1
+jobs:
+  resolve:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      stable: ${{ steps.sdk.outputs.stable }}
+      dart: ${{ steps.sdk.outputs.dart }}
+      package: ${{ steps.select.outputs.package }}
+      platforms: ${{ steps.select.outputs.platforms }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {fetch-depth: 0, persist-credentials: false}
+      - id: select
+        env:
+          FULL: ${{ github.event_name != 'pull_request' }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: python3 tool/ci.py impact "$BASE"
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with: {channel: stable, cache: true}
+      - id: sdk
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, subprocess
+          sdk = json.loads(subprocess.check_output(['flutter', '--version', '--machine']))
+          print('stable=' + sdk['frameworkVersion'])
+          print('dart=' + sdk['dartSdkVersion'].split()[0])
+          PY
+          flutter --version
+  package:
+    needs: resolve
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: [minimum, stable]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: ${{ matrix.sdk == 'minimum' && '3.38.1' || needs.resolve.outputs.stable }}
+          cache: true
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.pub-cache/hosted
+          key: pub-${{ runner.os }}-${{ runner.arch }}-${{ matrix.sdk == 'minimum' && '3.38.1' || needs.resolve.outputs.stable }}-${{ hashFiles('pubspec.yaml', 'example/pubspec.yaml', 'example/pubspec.lock') }}
+      - run: |
+          flutter pub upgrade --no-example
+          (cd example && flutter pub get)
+      - name: Formatting and CI helpers
+        if: matrix.sdk == 'stable'
+        run: |
+          dart format --output=none --set-exit-if-changed lib test tool example/lib example/integration_test example/test_driver
+          python3 -m unittest discover -s tool -p 'test_*.py'
+      - name: Lint workflows
+        if: matrix.sdk == 'stable'
+        run: |
+          curl --fail --silent --show-error --location https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz -o "$RUNNER_TEMP/actionlint.tar.gz"
+          curl --fail --silent --show-error --location https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_checksums.txt -o "$RUNNER_TEMP/actionlint-checksums.txt"
+          expected=$(awk '$2 == "actionlint_1.7.12_linux_amd64.tar.gz" {print $1}' "$RUNNER_TEMP/actionlint-checksums.txt")
+          test -n "$expected"
+          echo "$expected  $RUNNER_TEMP/actionlint.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/actionlint.tar.gz" -C "$RUNNER_TEMP" actionlint
+          # GitHub supports queue:max; this actionlint version predates that key.
+          "$RUNNER_TEMP/actionlint" -shellcheck='' -ignore 'unexpected key "queue" for "concurrency" section'
+      - run: flutter analyze --fatal-infos
+      - name: Unit and widget tests
+        env:
+          SDK: ${{ matrix.sdk }}
+        run: |
+          if [[ "$SDK" == stable ]]; then
+            flutter test --no-pub --coverage
+            python3 tool/ci.py coverage coverage/lcov.info
+          else
+            flutter test --no-pub
+          fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: matrix.sdk == 'stable'
+        with:
+          name: coverage
+          path: coverage/lcov.info
+          if-no-files-found: error
+          retention-days: 14
+      - name: Verify dependency lower bounds last
+        if: needs.resolve.outputs.package == 'true'
+        run: |
+          flutter pub downgrade --no-example
+          flutter analyze --fatal-infos
+          flutter test --no-pub
+  archive:
+    needs: resolve
+    if: needs.resolve.outputs.package == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      version: ${{ steps.manifest.outputs.version }}
+      sha256: ${{ steps.manifest.outputs.sha256 }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: ${{ needs.resolve.outputs.stable }}
+          cache: true
+      - run: flutter pub get --no-example
+      - name: Validate and create the candidate once
+        run: |
+          dart pub publish --dry-run
+          mkdir -p build/candidate
+          dart pub publish --to-archive=build/candidate/package.tar.gz
+      - id: manifest
+        run: python3 tool/ci.py manifest build/candidate/package.tar.gz build/candidate/manifest.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: candidate-package
+          path: build/candidate
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 14
+  consumer:
+    needs: [resolve, archive]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: [minimum, stable]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: ${{ matrix.sdk == 'minimum' && '3.38.1' || needs.resolve.outputs.stable }}
+          cache: true
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with: {name: candidate-package, path: build/candidate}
+      - run: python3 tool/ci.py consumer build/candidate/package.tar.gz build/candidate/manifest.json
+        env:
+          CANDIDATE_SHA256: ${{ needs.archive.outputs.sha256 }}
+  platforms:
+    needs: resolve
+    if: needs.resolve.outputs.platforms != '[]'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.resolve.outputs.platforms) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        if: matrix.platform == 'android'
+        with: {distribution: temurin, java-version: '17'}
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: ${{ needs.resolve.outputs.stable }}
+          cache: true
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: |
+            ~/.pub-cache/hosted
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: platform-${{ runner.os }}-${{ runner.arch }}-${{ matrix.platform }}-${{ needs.resolve.outputs.stable }}-${{ hashFiles('pubspec.yaml', 'example/pubspec.lock', 'example/android/**/*.gradle', 'example/android/gradle/wrapper/gradle-wrapper.properties') }}
+      - name: Record Xcode
+        if: matrix.platform == 'ios'
+        run: xcodebuild -version
+      - name: Select the required Android JDK
+        if: matrix.platform == 'android'
+        run: |
+          java -version
+          # Flutter otherwise prefers an installed Android Studio runtime.
+          flutter config --jdk-dir "$JAVA_HOME"
+      - run: flutter pub get
+      - name: Build Android release
+        if: matrix.platform == 'android'
+        working-directory: example
+        # Pub regenerates the Release registrant without development-only plugins.
+        run: flutter build apk
+      - name: Build iOS release without signing
+        if: matrix.platform == 'ios'
+        working-directory: example
+        run: flutter build ios --no-codesign
+      - uses: browser-actions/setup-chrome@48ad923757ca74d66703209fe939badbdf80f2f4 # v2.2.0
+        id: chrome
+        if: matrix.platform == 'web'
+        with:
+          chrome-version: stable
+          install-chromedriver: true
+      - name: Browser contracts, integration and Release artifact smoke test
+        if: matrix.platform == 'web'
+        timeout-minutes: 20
+        env:
+          CHROME_EXECUTABLE: ${{ steps.chrome.outputs.chrome-path }}
+          CHROMEDRIVER: ${{ steps.chrome.outputs.chromedriver-path }}
+        run: |
+          flutter test --no-pub --platform chrome test/event_boundaries_test.dart test/value_contracts_test.dart
+          "$CHROMEDRIVER" --port=4444 > "$RUNNER_TEMP/chromedriver.log" 2>&1 &
+          driver_pid=$!
+          trap 'kill "$driver_pid"' EXIT
+          python3 tool/web_smoke.py driver-ready
+          (cd example && flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d web-server --browser-name=chrome --driver-port=4444 --headless)
+          (cd example && flutter build web --release --no-pub --base-href /timetable_next/ --no-web-resources-cdn)
+          python3 tool/ci.py stamp-web example/build/web
+          python3 tool/web_smoke.py local example/build/web
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        if: matrix.platform == 'web'
+        with:
+          path: example/build/web
+          retention-days: 14
+      - name: Enable Android hardware acceleration
+        if: matrix.platform == 'android'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        if: matrix.platform == 'android'
+        timeout-minutes: 25
+        with:
+          api-level: 35
+          arch: x86_64
+          emulator-boot-timeout: 300
+          emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim
+          script: cd example && flutter test integration_test/app_test.dart -d emulator-5554
+      - name: Run iOS interaction on an available iPhone with bounded startup
+        if: matrix.platform == 'ios'
+        timeout-minutes: 25
+        run: python3 tool/ios_test.py
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure() && matrix.platform == 'web'
+        with:
+          name: diagnostics-web
+          path: build/diagnostics
+          retention-days: 14
+  required:
+    name: CI / required
+    if: always()
+    needs: [resolve, package, archive, consumer, platforms]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      - env:
+          CHECK_RESULTS: ${{ toJSON(needs) }}
+          REQUIRED_JOBS: >-
+            {"resolve":true,"package":true,"archive":${{ needs.resolve.outputs.package == 'true' }},"consumer":${{ needs.resolve.outputs.package == 'true' }},"platforms":${{ needs.resolve.outputs.platforms != '[]' }}}
+        run: python3 tool/ci.py gate

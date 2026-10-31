@@ -10,7 +10,7 @@
 
 Date and range helpers use the Dart SDK and existing collection utilities. Deterministic tests cover snapping, boundaries and comparison semantics. Repaint scheduling uses a cancellable SDK timer.
 
-The Android example uses JDK 17, Gradle 8.14.6, AGP 8.11.1 and Kotlin 2.2.21. The Wrapper is generated with Gradle 8.14.6 and pins the official distribution checksum. The iOS example uses Swift Package Manager; generated packages are not versioned.
+The Android example uses JDK 17, Gradle 8.14.6, AGP 8.11.1 and Kotlin 2.2.21. The Wrapper is generated with Gradle 8.14.6 and pins the official distribution checksum. CI validates this combination against the run's stable Flutter SDK. The iOS example uses Swift Package Manager; generated packages are not versioned. Platform builds use stable Flutter in CI; the minimum SDK is checked at the package boundary.
 
 Flutter 3.38.1 is the first supported endpoint because Flutter 3.38.0 shipped Dart 3.10 beta, which does not satisfy Dart >=3.10.0 stable. SDK-pinned packages may resolve differently across SDKs; do not force newer versions with overrides. Updating resolved versions does not require raising otherwise valid library lower bounds.
 

@@ -325,6 +325,8 @@ See the [changelog](CHANGELOG.md) for fixes and compatibility changes.
 
 The [example app](example/) targets Android, iOS, and Web. Its iOS project uses Swift Package Manager.
 
+See the [release guide](doc/RELEASING.md) for package publication and the GitHub Pages Demo deployment workflow.
+
 ```sh
 cd example
 flutter pub get

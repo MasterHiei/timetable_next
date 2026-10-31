@@ -10,6 +10,8 @@
 *.iml
 *.swp
 .DS_Store
+__pycache__/
+*.pyc
 # Shared .vscode configuration is intentionally versioned.
 
 # Dart and Flutter generated state
@@ -67,3 +69,8 @@ coverage/
 .github/
 AGENTS.md
 CONTEXT.md
+tool/
+test/
+example/pubspec.lock
+example/integration_test/
+example/test_driver/

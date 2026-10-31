@@ -4,7 +4,7 @@ Report bugs with the package/Flutter version, platform, reproduction, and expect
 
 ## Workflow
 
-`main` is the integration branch. Create a short-lived `feature/<name>` or `fix/<name>` branch and open a pull request. Keep commits focused; describe observable changes and relevant checks. Release publication is manual.
+`main` is the integration branch. Create a short-lived `feature/<name>` or `fix/<name>` branch and open a pull request. Keep commits focused; describe observable changes and relevant checks. After the first manual publication, a maintainer's protected version tag authorizes automatic publication following full acceptance. See [releasing](doc/RELEASING.md).
 
 Preserve public types and documented semantics. Behavioral fixes should include a regression test. Keep implementation changes separate from unrelated formatting or cleanup.
 
@@ -12,12 +12,14 @@ Preserve public types and documented semantics. Behavioral fixes should include 
 
 ```sh
 flutter pub get
-dart format --output=none --set-exit-if-changed lib test example/lib example/integration_test example/test_driver
+dart format --output=none --set-exit-if-changed lib test tool example/lib example/integration_test example/test_driver
 flutter analyze --fatal-infos
-flutter test
+flutter test --coverage
+python3 tool/ci.py coverage coverage/lcov.info
+python3 -m unittest discover -s tool -p 'test_*.py'
 ```
 
-Use current stable Flutter for formatting. To apply formatting, run `dart format lib test example/lib example/integration_test example/test_driver`. Dependency and platform changes require the corresponding [QA checks](doc/QA.md). The iOS example uses Swift Package Manager with the project setting in `example/pubspec.yaml`.
+Use the existing development SDK and tools locally. To apply formatting, run `dart format lib test tool example/lib example/integration_test example/test_driver`. CI checks stable formatting, the minimum SDK and the selected example platforms; do not install or switch local environments to reproduce that matrix. See [QA boundaries](doc/QA.md).
 
 Await asynchronous work when its completion is required. Use `unawaited` from `dart:async` for intentional concurrency, including animations advanced by widget-test pumps; do not change their ordering just to satisfy a lint. Explain necessary diagnostic suppressions immediately above the ignore. Remove obsolete suppressions when reviewing SDK upgrades, checking both supported SDK endpoints before removal.
 
