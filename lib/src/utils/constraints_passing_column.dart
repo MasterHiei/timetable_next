@@ -1,3 +1,4 @@
+// Changes from upstream: honor tight parent constraints, including empty columns.
 import 'package:black_hole_flutter/black_hole_flutter.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/rendering.dart';
@@ -60,7 +61,7 @@ class _ConstraintsPassingColumnRenderObject extends RenderBox
     assert(!sizedByParent);
 
     if (children.isEmpty) {
-      size = Size(0, constraints.maxHeight);
+      size = constraints.constrain(Size(0, constraints.maxHeight));
       return;
     }
 
@@ -80,7 +81,7 @@ class _ConstraintsPassingColumnRenderObject extends RenderBox
       currentHeight += child.size.height;
     }
 
-    size = Size(constraints.maxWidth, currentHeight);
+    size = constraints.constrain(Size(constraints.maxWidth, currentHeight));
   }
 
   @override

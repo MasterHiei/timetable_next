@@ -1,4 +1,4 @@
-// Changes from upstream: replaced Dartx helpers while preserving header layout behavior.
+// Changes from upstream: replaced Dartx helpers and honored constrained header heights.
 import 'dart:ui';
 
 import 'package:black_hole_flutter/black_hole_flutter.dart';
@@ -494,11 +494,13 @@ class _EventsLayout extends RenderBox
     assert(!sizedByParent);
 
     if (children.isEmpty) {
-      size = Size(constraints.maxWidth, 0);
+      size = constraints.constrain(Size(constraints.maxWidth, 0));
       return;
     }
 
-    size = Size(constraints.maxWidth, _parallelEventCount() * eventHeight);
+    size = constraints.constrain(
+      Size(constraints.maxWidth, _parallelEventCount() * eventHeight),
+    );
     _positionEvents();
   }
 
