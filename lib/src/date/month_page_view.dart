@@ -1,3 +1,4 @@
+// Changes from upstream: retain detached month values and rebind controller ownership.
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -24,12 +25,25 @@ class MonthPageView extends StatefulWidget {
 }
 
 class _MonthPageViewState extends State<MonthPageView> {
-  late final MonthPageController _controller;
+  late MonthPageController _controller;
   final _heights = <int, double>{};
 
   @override
   void initState() {
     super.initState();
+    _controller =
+        widget.monthPageController ??
+        MonthPageController(initialMonth: DateTimeTimetable.currentMonth());
+    _controller.addListener(_onMonthChanged);
+  }
+
+  @override
+  void didUpdateWidget(MonthPageView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.monthPageController == oldWidget.monthPageController) return;
+    _controller.removeListener(_onMonthChanged);
+    if (oldWidget.monthPageController == null) _controller.dispose();
+    _heights.clear();
     _controller =
         widget.monthPageController ??
         MonthPageController(initialMonth: DateTimeTimetable.currentMonth());
@@ -51,6 +65,8 @@ class _MonthPageViewState extends State<MonthPageView> {
   @override
   Widget build(BuildContext context) {
     Widget child = PageView.builder(
+      // A replacement owns its initial page instead of absorbing old pixels.
+      key: ObjectKey(_controller),
       controller: _controller._pageController,
       itemBuilder: (context, page) {
         final month = MonthPageController._monthFromPage(page);
@@ -112,6 +128,7 @@ class MonthPageController extends ChangeNotifier
     implements ValueListenable<DateTime> {
   MonthPageController({required DateTime initialMonth})
     : assert(initialMonth.debugCheckIsValidTimetableMonth()),
+      _previousValue = initialMonth,
       _pageController = PageController(
         initialPage: _pageFromMonth(initialMonth),
       ) {
@@ -121,9 +138,15 @@ class MonthPageController extends ChangeNotifier
   final PageController _pageController;
 
   @override
-  DateTime get value => _monthFromPage(_pageController.page!.round());
+  DateTime get value => _pageController.hasClients
+      ? _monthFromPage(
+          (_pageController.page ?? _pageController.initialPage.toDouble())
+              .round(),
+        )
+      : _previousValue;
 
-  late DateTime _previousValue = value;
+  // Keep the initial and last observed month readable while no view is attached.
+  DateTime _previousValue;
   @override
   void notifyListeners() {
     final newValue = value;
@@ -135,6 +158,7 @@ class MonthPageController extends ChangeNotifier
   @override
   void dispose() {
     _pageController.removeListener(notifyListeners);
+    _pageController.dispose();
     super.dispose();
   }
 

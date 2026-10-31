@@ -20,5 +20,6 @@ First independent release based on timetable 1.0.0-alpha.15.
 - Start compact months at the supplied controller's date and respect bounded layout constraints.
 - Cancel current-time repaint timers when their view detaches.
 - Release mapped-listenable subscriptions when the last view detaches.
+- Keep month-controller values readable while detached, notify the first month transition, and rebind replacement controllers without retaining the old page.
 
 Earlier releases belong to the original [timetable changelog](https://github.com/JonasWanke/timetable/blob/23b4d1b622a8f3b39f3038e218cb780c66f30bd5/CHANGELOG.md).
