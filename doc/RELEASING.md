@@ -35,7 +35,7 @@ If the package does not exist on pub.dev, an authorized maintainer must publish 
 
 Update version and CHANGELOG through a PR, then create and push its matching tag. Full tag CI must succeed; another run or commit's artifacts are not reused.
 
-CI runs `dart pub publish --dry-run`, creates the candidate once with `--to-archive`, and tests its contents with both SDK consumers. Publication checks its revision/version/SHA-256 and uses `--from-archive` with OIDC. Archive publishing skips some client checks, so dry-run and consumer checks are mandatory.
+CI runs `dart pub publish --dry-run`, creates the candidate once with `--to-archive`, and tests its contents in an independent consumer on stable Flutter. Package tests on both supported SDK endpoints and the minimum-SDK dependency downgrade check run from source. Publication checks the candidate's revision/version/SHA-256 and uses `--from-archive` with OIDC. Archive publishing skips some client checks, so dry-run and consumer checks are mandatory.
 
 GitHub Release attaches that candidate and its small identity manifest. Pre-releases are marked accordingly. There is no example-application binary distribution or signing step.
 

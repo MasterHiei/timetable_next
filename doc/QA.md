@@ -8,18 +8,24 @@ Flutter 3.38.1 is the minimum package endpoint. CI resolves the current stable v
 
 ## Local development
 
-Use the existing development SDK and tools. Do not install or switch SDKs, JDKs, browsers or simulator runtimes to reproduce the CI matrix locally.
+Use the existing development SDK and tools. Start with checks affected by the change. SDK and platform matrices run in CI; local development does not require installing or switching environments.
+
+Format changed Dart files with `dart format`. After test changes, run the complete local package checks:
 
 ```sh
 flutter pub get
-dart format --output=none --set-exit-if-changed lib test tool example/lib example/integration_test example/test_driver
 flutter analyze --fatal-infos
 flutter test --coverage
 python3 tool/ci.py coverage coverage/lcov.info
+```
+
+For helper or workflow changes, also run the script tests with the existing Python environment, if available:
+
+```sh
 python3 -m unittest discover -s tool -p 'test_*.py'
 ```
 
-Run the script tests when the existing Python environment is available; otherwise leave them to CI. Proxy settings that intercept localhost test sockets should be bypassed for that process. Never change product behavior to mask an environment failure.
+Bypass proxies for localhost test sockets in the test process if they interfere with Flutter's VM service.
 
 After these checks pass, rerun only checks affected by further changes or failures. Other SDKs, platform builds, browser/device integration and release rehearsal are CI responsibilities.
 
@@ -28,16 +34,18 @@ After these checks pass, rerun only checks affected by further changes or failur
 | Change or event | Checks |
 |---|---|
 | Every PR | Stable formatting and helper checks; both SDKs analyze and run all unit/widget tests; stable coverage |
-| Library, dependency declarations, distribution configuration or CI/helpers | Also test downgraded dependencies and the candidate archive with both consumers |
+| Library, dependency declarations, distribution configuration or CI/helpers | Minimum-SDK dependency downgrade checks and stable candidate-archive consumer |
 | Shared library, example Dart code, shared integration fixture or CI/helpers | Stable Android/iOS/Web builds and interactions |
 | Platform-only host changes | That stable platform's build and interaction |
 | Ordinary tests or documentation | Basic package checks |
-| Main, weekly, manual or release tag | All checks |
+| Main, manual or release tag | All checks |
 | Unknown paths | All checks; classification failure fails CI |
 
 `ci.yml` owns these checks and is reusable by `release.yml`. The single required result is `CI / required`. Its gate checks expected jobs: failure, cancellation or an unexpected skip cannot pass. Workflows have no top-level PR path filters.
 
-Downgrade checks run last in each SDK job; archive and platform jobs have independent checkouts. They prove the lowest dependency combination produced by Pub, not every permitted combination. Do not override Flutter's pinned dependencies. Pub output records actual dependency resolutions.
+Both SDK jobs analyze and test upgraded dependencies. Downgrade checks run last on the minimum SDK, without overriding Flutter's pinned dependencies. They validate the combination Pub resolves in that environment, not every permitted combination. The archive consumer runs on stable; minimum-SDK package compatibility is tested from source. Stable with downgraded dependencies and minimum-SDK archive consumption are outside this matrix.
+
+Archive and platform jobs have independent checkouts. There are no scheduled runs; upstream changes are checked on the next PR, main push, manual run or release.
 
 ## Test design
 
@@ -59,15 +67,15 @@ Each selected platform builds its release example and runs the shared interactio
 
 Web additionally runs the JavaScript-sensitive date/event contract tests. It then builds JavaScript Release **after** integration testing with `/timetable_next/` as base href and local engine resources. A separate smoke check serves that actual bundle at the subpath, finds the Today control, opens the Theme menu and checks browser errors. Screenshots are failure diagnostics, not acceptance thresholds.
 
-The archive check runs publish dry-run, creates one candidate and records version, revision and SHA-256. Both independent consumers use only extracted archive contents to verify public entries, `dart_date.Interval` and widget rendering. See [releasing](RELEASING.md) for distribution.
+The archive check runs publish dry-run, creates one candidate and records version, revision and SHA-256. An independent consumer on stable uses only extracted archive contents to verify public entries, `dart_date.Interval` and widget rendering. See [releasing](RELEASING.md) for distribution.
 
 ## Workflow maintenance
 
-Keep Actions pinned to full commits with version comments; update them deliberately. Use actionlint for workflow syntax and unit tests for project-owned selection, gate, coverage, version-ordering and artifact-identity logic. Actionlint 1.7.12 predates GitHub's `concurrency.queue`; only that exact unknown-key diagnostic is excluded.
+Keep Actions pinned to full commits with version comments. CI runs actionlint for workflow syntax and unit tests for project-owned selection, gate, coverage, version-ordering and artifact-identity logic.
 
-PR updates cancel superseded PR runs. Releases queue without cancellation. Package jobs time out after 15 minutes, platforms after 30, simulator startup after five and publication/deployment after ten. Do not automatically retry product tests. Only remote publication/deployment visibility uses bounded read polling.
+PR updates cancel superseded PR runs. Releases queue without cancellation. Jobs have bounded timeouts. Product tests are not automatically retried; remote publication/deployment visibility uses bounded read polling.
 
-Cache downloaded SDK/Pub/Gradle dependencies, not credentials, `.dart_tool`, workspaces or simulator state. Keep coverage, candidate and Pages artifacts for 14 days; upload browser diagnostics on failure. Use standard job logs/results instead of custom success-evidence bundles. Report unexecuted checks as unverified.
+Cache downloaded SDK/Pub/Gradle dependencies, not credentials or workspace state. Keep coverage, candidate and Pages artifacts for 14 days and upload browser diagnostics on failure. Report unexecuted checks as unverified.
 
 ## Official references
 

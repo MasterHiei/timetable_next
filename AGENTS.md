@@ -8,13 +8,7 @@ Keep value objects and caller-owned data immutable. Controllers own mutable inte
 
 ## Verification
 
-```sh
-flutter pub get
-flutter analyze --fatal-infos
-flutter test
-```
-
-Format changed Dart files. For dependency or platform changes, run the corresponding checks in [doc/QA.md](doc/QA.md), including the minimum SDK. Use fixed UTC fixtures and independent expected values. Do not weaken assertions, skip critical tests or retry away product failures.
+Follow [doc/QA.md](doc/QA.md) for local checks and CI coverage. Use the existing development environment locally; CI owns the SDK and platform matrices. Format changed Dart files and use fixed UTC fixtures with independent expected values. Do not weaken assertions, skip critical tests or retry away product failures.
 
 Keep machine paths, task progress, raw logs and generated artifacts out of tracked files. Review the diff for scope drift and accidental files before reporting results. Distinguish failed checks from checks that could not run.
 

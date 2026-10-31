@@ -14,4 +14,4 @@ The Android example uses JDK 17, Gradle 8.14.6, AGP 8.11.1 and Kotlin 2.2.21. Th
 
 Flutter 3.38.1 is the first supported endpoint because Flutter 3.38.0 shipped Dart 3.10 beta, which does not satisfy Dart >=3.10.0 stable. SDK-pinned packages may resolve differently across SDKs; do not force newer versions with overrides. Updating resolved versions does not require raising otherwise valid library lower bounds.
 
-Check both SDK endpoints and downgraded dependency resolution when changing constraints. Evaluate dependency use, compatibility and maintenance together; release age alone is not a vulnerability finding.
+When changing constraints, CI analyzes and tests both SDK endpoints with upgraded dependencies and checks downgraded dependencies on the minimum SDK. These checks cover the combinations Pub resolves for those environments. See [Quality checks](QA.md) for the verification matrix. Evaluate dependency use, compatibility and maintenance together; release age alone is not a vulnerability finding.

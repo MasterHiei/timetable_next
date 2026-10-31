@@ -10,16 +10,7 @@ Preserve public types and documented semantics. Behavioral fixes should include 
 
 ## Checks
 
-```sh
-flutter pub get
-dart format --output=none --set-exit-if-changed lib test tool example/lib example/integration_test example/test_driver
-flutter analyze --fatal-infos
-flutter test --coverage
-python3 tool/ci.py coverage coverage/lcov.info
-python3 -m unittest discover -s tool -p 'test_*.py'
-```
-
-Use the existing development SDK and tools locally. To apply formatting, run `dart format lib test tool example/lib example/integration_test example/test_driver`. CI checks stable formatting, the minimum SDK and the selected example platforms; do not install or switch local environments to reproduce that matrix. See [QA boundaries](doc/QA.md).
+Follow [Quality checks](doc/QA.md) for local commands, test design and the CI matrix. Use the existing development SDK and tools locally; CI covers the supported SDK endpoints and selected example platforms.
 
 Await asynchronous work when its completion is required. Use `unawaited` from `dart:async` for intentional concurrency, including animations advanced by widget-test pumps; do not change their ordering just to satisfy a lint. Explain necessary diagnostic suppressions immediately above the ignore. Remove obsolete suppressions when reviewing SDK upgrades, checking both supported SDK endpoints before removal.
 

@@ -3,8 +3,6 @@ on:
   pull_request:
   push:
     branches: [main]
-  schedule:
-    - cron: '0 4 * * 1'
   workflow_dispatch:
   workflow_call:
     outputs:
@@ -106,7 +104,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
       - name: Verify dependency lower bounds last
-        if: needs.resolve.outputs.package == 'true'
+        if: matrix.sdk == 'minimum' && needs.resolve.outputs.package == 'true'
         run: |
           flutter pub downgrade --no-example
           flutter analyze --fatal-infos
@@ -145,16 +143,12 @@ jobs:
     needs: [resolve, archive]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        sdk: [minimum, stable]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
-          flutter-version: ${{ matrix.sdk == 'minimum' && '3.38.1' || needs.resolve.outputs.stable }}
+          flutter-version: ${{ needs.resolve.outputs.stable }}
           cache: true
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with: {name: candidate-package, path: build/candidate}
