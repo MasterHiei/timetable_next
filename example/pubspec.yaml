@@ -9,7 +9,7 @@ environment:
   flutter: '>=3.38.1'
 
 dependencies:
-  black_hole_flutter: ^1.1.0
+  black_hole_flutter: ^1.2.0
   flutter:
     sdk: flutter
   flutter_localizations:
