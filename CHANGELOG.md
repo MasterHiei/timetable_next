@@ -2,6 +2,15 @@
 
 <!-- Changes from upstream: replaced mixed upstream notes with independent release notes and a history link. -->
 
+## 1.0.0-beta.2 - 2026-11-01
+
+Maintenance prerelease with no changes to calendar behavior or public APIs.
+
+### Fixed
+
+- Wait for simulator logs before launching the iOS test app, avoiding a race in VM Service discovery.
+- Preserve the original iOS CI test error when simulator cleanup also fails.
+
 ## 1.0.0-beta.1 - 2026-10-31
 
 First independent release based on timetable 1.0.0-alpha.15.

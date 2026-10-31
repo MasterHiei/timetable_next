@@ -1,7 +1,7 @@
 # Changes from upstream: renamed the package and updated its SDK, dependency and publication metadata.
 name: timetable_next
 description: Customizable, animated calendar widget including day, week, and month views
-version: 1.0.0-beta.1
+version: 1.0.0-beta.2
 repository: https://github.com/MasterHiei/timetable_next
 issue_tracker: https://github.com/MasterHiei/timetable_next/issues
 screenshots:
