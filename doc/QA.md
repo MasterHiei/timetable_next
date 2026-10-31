@@ -65,9 +65,15 @@ CI uses `ubuntu-24.04` for Android/Web and `macos-26` for iOS. Android selects J
 
 Each selected platform builds its release example and runs the shared interaction fixture. Native commands retain Pub so Flutter regenerates the plugin registrant for the build mode. Do not use `--no-pub` for native builds or device tests.
 
-Web additionally runs the JavaScript-sensitive date/event contract tests. It then builds JavaScript Release **after** integration testing with `/timetable_next/` as base href and local engine resources. A separate smoke check serves that actual bundle at the subpath, finds the Today control, opens the Theme menu and checks browser errors. Screenshots are failure diagnostics, not acceptance thresholds.
+Web additionally runs the JavaScript-sensitive date/event contract tests in Chrome, followed by the example's Web integration tests. It then rebuilds the example as a JavaScript Release app from the `example` directory:
 
-The archive check runs publish dry-run, creates one candidate and records version, revision and SHA-256. An independent consumer on stable uses only extracted archive contents to verify public entries, `dart_date.Interval` and widget rendering. See [releasing](RELEASING.md) for distribution.
+```sh
+flutter build web --release --no-pub --base-href /timetable_next/ --no-web-resources-cdn
+```
+
+CI writes the package version and source revision to `release.json`, then serves the actual bundle at `/timetable_next/` for a smoke check. The check finds the Today control, opens the Theme menu and checks browser errors. Engine resources are bundled locally. Screenshots are failure diagnostics, not acceptance thresholds.
+
+The archive check runs publish dry-run, creates one candidate and records version, revision and SHA-256. An independent consumer on stable uses only extracted archive contents to verify public entries, `dart_date.Interval` and widget rendering.
 
 ## Workflow maintenance
 

@@ -4,11 +4,13 @@
 
 📅 Customizable, animated calendar widget including day, week, and month views.
 
+---
+
 An independently maintained continuation of [JonasWanke/timetable](https://github.com/JonasWanke/timetable).
 
-Requires Flutter 3.38.1 and Dart 3.10.0 or later.
+Explore the [web demo](https://masterhiei.github.io/timetable_next/) to try the calendar layouts and interactions.
 
-Demos from the original timetable project.
+---
 
 | Navigation | Animation |
 | :---: | :---: |
@@ -18,23 +20,24 @@ Demos from the original timetable project.
 | :---: | :---: |
 | ![callbacks](https://raw.githubusercontent.com/JonasWanke/timetable/23b4d1b622a8f3b39f3038e218cb780c66f30bd5/doc/demo-callbacks.webp) | ![visibleDateRange](https://raw.githubusercontent.com/JonasWanke/timetable/23b4d1b622a8f3b39f3038e218cb780c66f30bd5/doc/demo-visibleDateRange.webp) |
 
-- [Available Layouts](#available-layouts)
-  - [`MultiDateTimetable`](#multidatetimetable)
-  - [`RecurringMultiDateTimetable`](#recurringmultidatetimetable)
-  - [`CompactMonthTimetable`](#compactmonthtimetable)
-- [Getting started](#getting-started)
-  - [0. General Information](#0-general-information)
-  - [1. Define your `Event`s](#1-define-your-events)
-  - [2. Create a `DateController` (optional)](#2-create-a-datecontroller-optional)
-  - [3. Create a `TimeController` (optional)](#3-create-a-timecontroller-optional)
-  - [4. Create your Timetable widget](#4-create-your-timetable-widget)
-- [Theming](#theming)
-- [Advanced Features](#advanced-features)
-  - [Drag and Drop](#drag-and-drop)
-  - [Time Overlays](#time-overlays)
-- [Migrating from timetable](#migrating-from-timetable)
-- [Example and contributing](#example-and-contributing)
-- [License](#license)
+- [timetable\_next](#timetable_next)
+  - [Available Layouts](#available-layouts)
+    - [`MultiDateTimetable`](#multidatetimetable)
+    - [`RecurringMultiDateTimetable`](#recurringmultidatetimetable)
+    - [`CompactMonthTimetable`](#compactmonthtimetable)
+  - [Getting started](#getting-started)
+    - [0. General Information](#0-general-information)
+    - [1. Define your `Event`s](#1-define-your-events)
+    - [2. Create a `DateController` (optional)](#2-create-a-datecontroller-optional)
+    - [3. Create a `TimeController` (optional)](#3-create-a-timecontroller-optional)
+    - [4. Create your Timetable widget](#4-create-your-timetable-widget)
+  - [Theming](#theming)
+  - [Advanced Features](#advanced-features)
+    - [Drag and Drop](#drag-and-drop)
+    - [Time Overlays](#time-overlays)
+  - [Migrating from timetable](#migrating-from-timetable)
+  - [Example and contributing](#example-and-contributing)
+  - [License](#license)
 
 ## Available Layouts
 
@@ -324,8 +327,6 @@ See the [changelog](CHANGELOG.md) for fixes and compatibility changes.
 ## Example and contributing
 
 The [example app](example/) targets Android, iOS, and Web. Its iOS project uses Swift Package Manager.
-
-See the [release guide](doc/RELEASING.md) for package publication and the GitHub Pages Demo deployment workflow.
 
 ```sh
 cd example

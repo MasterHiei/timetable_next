@@ -4,7 +4,7 @@ Report bugs with the package/Flutter version, platform, reproduction, and expect
 
 ## Workflow
 
-`main` is the integration branch. Create a short-lived `feature/<name>` or `fix/<name>` branch and open a pull request. Keep commits focused; describe observable changes and relevant checks. After the first manual publication, a maintainer's protected version tag authorizes automatic publication following full acceptance. See [releasing](doc/RELEASING.md).
+`main` is the integration branch. Create a short-lived `feature/<name>` or `fix/<name>` branch and open a pull request. Keep commits focused; describe observable changes and relevant checks.
 
 Preserve public types and documented semantics. Behavioral fixes should include a regression test. Keep implementation changes separate from unrelated formatting or cleanup.
 

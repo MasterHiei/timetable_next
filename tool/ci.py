@@ -290,7 +290,7 @@ def main():
                 read_json("https://pub.dev/api/packages/timetable_next")
             except urllib.error.HTTPError as error:
                 if error.code == 404:
-                    raise ValueError("First publication must be performed manually using the verified candidate; see doc/RELEASING.md") from error
+                    raise ValueError("First publication must be performed manually using the verified candidate") from error
                 raise
             output(exists=remote_archive(args[0], metadata["version"]) is not None)
         else:
