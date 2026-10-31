@@ -259,10 +259,64 @@ jobs:
           name: diagnostics-web
           path: build/diagnostics
           retention-days: 14
+  rehearsal:
+    name: Release rehearsal
+    needs: [resolve, package, archive, consumer, platforms]
+    if: needs.resolve.outputs.package == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      - name: Record validation commits
+        env:
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          printf 'PR head: %s\nValidated revision: %s\n' "$PR_HEAD" "$GITHUB_SHA"
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with: {name: candidate-package, path: build/candidate}
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with: {name: github-pages, path: build/pages}
+      - name: Verify and unpack the release artifacts
+        env:
+          CANDIDATE_SHA256: ${{ needs.archive.outputs.sha256 }}
+        run: python3 tool/ci.py release-rehearsal build/candidate/package.tar.gz build/candidate/manifest.json build/pages/artifact.tar build/rehearsal
+      - uses: browser-actions/setup-chrome@48ad923757ca74d66703209fe939badbdf80f2f4 # v2.2.0
+        id: chrome
+        with:
+          chrome-version: stable
+          install-chromedriver: true
+      - name: Smoke-test the downloaded Pages bundle
+        env:
+          CHROME_EXECUTABLE: ${{ steps.chrome.outputs.chrome-path }}
+          CHROMEDRIVER: ${{ steps.chrome.outputs.chromedriver-path }}
+        run: |
+          mkdir -p build/diagnostics
+          "$CHROMEDRIVER" --port=4444 > build/diagnostics/chromedriver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$driver_pid" 2>/dev/null || true' EXIT
+          python3 tool/web_smoke.py driver-ready
+          python3 tool/web_smoke.py local build/rehearsal/web
+      - name: Prepare release notes from the candidate
+        run: python3 tool/ci.py release-notes build/rehearsal/release-notes.md build/candidate/package.tar.gz
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-notes
+          path: build/rehearsal/release-notes.md
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 14
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: diagnostics-rehearsal
+          path: build/diagnostics
+          if-no-files-found: ignore
+          retention-days: 14
   required:
     name: CI / required
     if: always()
-    needs: [resolve, package, archive, consumer, platforms]
+    needs: [resolve, package, archive, consumer, platforms, rehearsal]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -271,5 +325,5 @@ jobs:
       - env:
           CHECK_RESULTS: ${{ toJSON(needs) }}
           REQUIRED_JOBS: >-
-            {"resolve":true,"package":true,"archive":${{ needs.resolve.outputs.package == 'true' }},"consumer":${{ needs.resolve.outputs.package == 'true' }},"platforms":${{ needs.resolve.outputs.platforms != '[]' }}}
+            {"resolve":true,"package":true,"archive":${{ needs.resolve.outputs.package == 'true' }},"consumer":${{ needs.resolve.outputs.package == 'true' }},"platforms":${{ needs.resolve.outputs.platforms != '[]' }},"rehearsal":${{ needs.resolve.outputs.package == 'true' }}}
         run: python3 tool/ci.py gate

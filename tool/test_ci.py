@@ -9,6 +9,7 @@ import tarfile
 import tempfile
 import unittest
 from unittest import mock
+import urllib.error
 
 import ci
 import ios_test
@@ -53,6 +54,18 @@ class ChecksTest(unittest.TestCase):
             ci.require_jobs({}, {"package": True})
         with self.assertRaises(ValueError):
             ci.require_jobs({"ios": {"result": "failure"}}, {"ios": False})
+
+    def test_gate_requires_the_selected_rehearsal_after_platform_checks(self):
+        required = dict.fromkeys(("resolve", "package", "archive", "consumer", "platforms", "rehearsal"), True)
+        passed = {name: {"result": "success"} for name in required}
+        ci.require_jobs(passed, required)
+        for status in (None, "failure", "cancelled", "skipped"):
+            with self.subTest(status=status), self.assertRaisesRegex(ValueError, "rehearsal"):
+                ci.require_jobs({**passed, "rehearsal": {"result": status}}, required)
+        with self.assertRaisesRegex(ValueError, "platforms"):
+            ci.require_jobs({**passed, "platforms": {"result": "failure"}, "rehearsal": {"result": "skipped"}}, required)
+        optional = {**required, "archive": False, "consumer": False, "platforms": False, "rehearsal": False}
+        ci.require_jobs({name: {"result": "success" if expected else "skipped"} for name, expected in optional.items()}, optional)
 
     def test_semver_and_demo_ordering(self):
         versions = ["1.0.0-alpha", "1.0.0-alpha.1", "1.0.0-alpha.beta", "1.0.0-beta.2", "1.0.0-beta.11", "1.0.0-rc.1", "1.0.0", "1.0.1", "2.0.0"]
@@ -226,6 +239,109 @@ class ChecksTest(unittest.TestCase):
                 archive.addfile(member, io.BytesIO(content))
         return stream.getvalue()
 
+    def make_pages(self, extra=None):
+        files = {
+            "release.json": b'{"version":"1.0.0-beta.1","revision":"commit"}',
+            "index.html": b'<html><head><base href="/timetable_next/"></head></html>',
+            "flutter_bootstrap.js": b"bootstrap fixture",
+            "main.dart.js": b"application fixture",
+            "assets/nested.txt": b"nested fixture",
+        }
+        files.update(extra or {})
+        stream = io.BytesIO()
+        with tarfile.open(fileobj=stream, mode="w") as archive:
+            for name, content in files.items():
+                if content is None:
+                    continue
+                member = tarfile.TarInfo("./" + name)
+                member.size = len(content)
+                archive.addfile(member, io.BytesIO(content))
+        return stream.getvalue()
+
+    def test_rehearsal_uses_downloaded_artifacts_and_candidate_release_notes(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            archive, metadata, pages = (root / name for name in ("package.tar.gz", "manifest.json", "artifact.tar"))
+            archive.write_bytes(self.make_archive({"CHANGELOG.md": b"## 1.0.0-beta.1 - 2026-01-01\n\nCalendar changes.\n\n## 0.9.0\n\nOlder notes.\n"}))
+            candidate = ci.manifest(archive, "commit")
+            metadata.write_text(json.dumps(candidate))
+            pages.write_bytes(self.make_pages())
+            destination = root / "rehearsal"
+            args = ["ci.py", "release-rehearsal", str(archive), str(metadata), str(pages), str(destination)]
+            with mock.patch.dict(ci.os.environ, GITHUB_SHA="commit", CANDIDATE_SHA256=candidate["sha256"]), mock.patch.object(ci.sys, "argv", args), mock.patch.object(ci, "read_json", side_effect=AssertionError("PR rehearsal must not query published contents")), mock.patch.object(ci.sys, "stdout", io.StringIO()):
+                ci.main()
+            self.assertFalse((destination / "release-notes.md").exists())
+            web = ci.archive_files(pages.read_bytes(), mode="r:", required=())
+            self.assertEqual({path.relative_to(destination / "web").as_posix(): path.read_bytes() for path in (destination / "web").rglob("*") if path.is_file()}, web)
+            with mock.patch.object(ci.sys, "argv", ["ci.py", "release-notes", str(destination / "release-notes.md"), str(archive)]):
+                ci.main()
+            self.assertEqual((destination / "release-notes.md").read_text(), "Calendar changes.\n\n[pub.dev](https://pub.dev/packages/timetable_next/versions/1.0.0-beta.1) · [Demo](https://masterhiei.github.io/timetable_next/)\n")
+
+    def test_rehearsal_rejects_candidate_and_pages_identity_mismatches(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            archive, metadata, pages = (root / name for name in ("package.tar.gz", "manifest.json", "artifact.tar"))
+            archive.write_bytes(self.make_archive({"CHANGELOG.md": b"## 1.0.0-beta.1\n\nNotes.\n"}))
+            candidate = ci.manifest(archive, "commit")
+            pages.write_bytes(self.make_pages())
+            for field, value in (("version", "2.0.0"), ("revision", "other"), ("sha256", "wrong")):
+                metadata.write_text(json.dumps({**candidate, field: value}))
+                with self.subTest(field=field), self.assertRaises(ValueError):
+                    ci.release_rehearsal(archive, metadata, pages, root / "output", "commit")
+            metadata.write_text(json.dumps(candidate))
+            with mock.patch.dict(ci.os.environ, CANDIDATE_SHA256="wrong"), self.assertRaisesRegex(ValueError, "verified by this run"):
+                ci.release_rehearsal(archive, metadata, pages, root / "output", "commit")
+            for changes in (
+                {"release.json": b'{"version":"2.0.0","revision":"commit"}'},
+                {"release.json": b'{"version":"1.0.0-beta.1","revision":"other"}'},
+                {"release.json": b"invalid json"},
+                {"release.json": None}, {"index.html": None},
+                {"flutter_bootstrap.js": None}, {"main.dart.js": None},
+                {"index.html": b'<base href="/">'},
+            ):
+                pages.write_bytes(self.make_pages(changes))
+                with self.subTest(changes=changes), self.assertRaises(ValueError):
+                    ci.release_rehearsal(archive, metadata, pages, root / "output", "commit")
+                self.assertFalse((root / "output").exists())
+            pages.write_bytes(b"broken tar")
+            with self.assertRaises(tarfile.ReadError):
+                ci.release_rehearsal(archive, metadata, pages, root / "output", "commit")
+            pages.write_bytes(self.make_pages())
+            archive.write_bytes(b"broken gzip")
+            with self.assertRaises(tarfile.ReadError):
+                ci.release_rehearsal(archive, metadata, pages, root / "output", "commit")
+
+    def test_release_notes_require_a_nonempty_matching_version_section(self):
+        for text in ("## 2.0.0\n\nOther version.\n", "## 1.0.0-beta.1\n\n## 0.9.0\n\nOlder notes.\n"):
+            with self.subTest(text=text), self.assertRaisesRegex(ValueError, "Missing release notes"):
+                ci.release_notes(text, "1.0.0-beta.1")
+
+    def test_pages_archives_keep_the_package_safety_and_compression_rules(self):
+        for name in ("../outside", "/absolute"):
+            stream = io.BytesIO()
+            with tarfile.open(fileobj=stream, mode="w") as archive:
+                member = tarfile.TarInfo(name)
+                archive.addfile(member, io.BytesIO())
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, "Unsafe"):
+                ci.archive_files(stream.getvalue(), mode="r:", required=())
+        for kind in (tarfile.SYMTYPE, tarfile.LNKTYPE, tarfile.FIFOTYPE):
+            stream = io.BytesIO()
+            with tarfile.open(fileobj=stream, mode="w") as archive:
+                member = tarfile.TarInfo("entry")
+                member.type = kind
+                member.linkname = "outside"
+                archive.addfile(member)
+            with self.subTest(kind=kind), self.assertRaises(ValueError):
+                ci.archive_files(stream.getvalue(), mode="r:", required=())
+        stream = io.BytesIO()
+        with tarfile.open(fileobj=stream, mode="w") as archive:
+            for name in ("entry", "./entry"):
+                archive.addfile(tarfile.TarInfo(name), io.BytesIO())
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            ci.archive_files(stream.getvalue(), mode="r:", required=())
+        with self.assertRaises(tarfile.ReadError):
+            ci.archive_files(self.make_pages())
+
     def test_candidate_identity_and_existing_publication(self):
         with tempfile.TemporaryDirectory() as temporary:
             archive, metadata = Path(temporary) / "package.tar.gz", Path(temporary) / "manifest.json"
@@ -240,6 +356,8 @@ class ChecksTest(unittest.TestCase):
                     ci.verify_archive(archive, metadata, "commit")
             response = mock.MagicMock()
             response.__enter__.return_value.read.return_value = data
+            with mock.patch.object(ci, "read_json", side_effect=urllib.error.HTTPError("https://pub.dev/fixture", 404, "Not found", {}, None)):
+                self.assertIsNone(ci.remote_archive(archive, "1.0.0-beta.1"))
             with mock.patch.object(ci, "read_json", return_value={"archive_url": "https://pub.dev/fixture"}), mock.patch.object(ci.urllib.request, "urlopen", return_value=response):
                 self.assertIsNotNone(ci.remote_archive(archive, "1.0.0-beta.1"))
                 archive.write_bytes(self.make_archive({"lib/extra.dart": b"changed"}))

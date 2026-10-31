@@ -163,9 +163,9 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def archive_files(data):
+def archive_files(data, *, mode="r:gz", required=("pubspec.yaml", "LICENSE", "README.md", "CHANGELOG.md", "lib/timetable.dart", "lib/timetable_next.dart")):
     files = {}
-    with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as archive:
+    with tarfile.open(fileobj=io.BytesIO(data), mode=mode) as archive:
         for member in archive:
             path = PurePosixPath(member.name)
             if path.is_absolute() or ".." in path.parts or member.issym() or member.islnk():
@@ -175,9 +175,9 @@ def archive_files(data):
             if not member.isfile() or path.as_posix() in files:
                 raise ValueError(f"Invalid or duplicate archive entry: {member.name}")
             files[path.as_posix()] = archive.extractfile(member).read()
-    for required in ("pubspec.yaml", "LICENSE", "README.md", "CHANGELOG.md", "lib/timetable.dart", "lib/timetable_next.dart"):
-        if required not in files:
-            raise ValueError(f"Required package file missing: {required}")
+    for name in required:
+        if name not in files:
+            raise ValueError(f"Required archive file missing: {name}")
     return files
 
 
@@ -196,6 +196,28 @@ def verify_archive(archive, metadata, revision):
     if "CANDIDATE_SHA256" in os.environ and actual["sha256"] != os.environ["CANDIDATE_SHA256"]:
         raise ValueError("Candidate differs from the archive verified by this run")
     return actual
+
+
+def release_notes(text, package_version):
+    match = re.search(r"^##\s+" + re.escape(package_version) + r"(?:\s[^\n]*)?\n(.*?)(?=^##\s|\Z)", text, re.M | re.S)
+    if not match or not match[1].strip():
+        raise ValueError("Missing release notes")
+    return match[1].strip() + f"\n\n[pub.dev](https://pub.dev/packages/timetable_next/versions/{package_version}) · [Demo](https://masterhiei.github.io/timetable_next/)\n"
+
+
+def release_rehearsal(archive, metadata, pages, destination, revision):
+    candidate = verify_archive(archive, metadata, revision)
+    web = archive_files(Path(pages).read_bytes(), mode="r:", required=("release.json", "index.html", "flutter_bootstrap.js", "main.dart.js"))
+    if json.loads(web["release.json"]) != {"version": candidate["version"], "revision": revision}:
+        raise ValueError("Pages version or revision differs from the candidate")
+    if not re.search(r"<base\s+href=[\"']/timetable_next/[\"']\s*/?>", web["index.html"].decode()):
+        raise ValueError("Pages base href must be /timetable_next/")
+    destination = Path(destination)
+    for name, content in web.items():
+        path = destination / "web" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
+    print("Release rehearsal inputs verified:", json.dumps(candidate))
 
 
 def release_guard(tag, revision, root=ROOT):
@@ -238,7 +260,7 @@ def pages_needed(current, candidate):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("impact", "gate", "coverage", "manifest", "verify-archive", "consumer", "release-guard", "remote-check", "wait-published", "stamp-web", "pages-needed", "check-deployed", "release-notes"))
+    parser.add_argument("command", choices=("impact", "gate", "coverage", "manifest", "verify-archive", "consumer", "release-guard", "remote-check", "wait-published", "stamp-web", "pages-needed", "check-deployed", "release-notes", "release-rehearsal"))
     parser.add_argument("args", nargs="*")
     options = parser.parse_args()
     args = options.args
@@ -266,6 +288,8 @@ def main():
         output(sha256=metadata["sha256"], version=metadata["version"])
     elif command == "verify-archive":
         verify_archive(args[0], args[1], revision)
+    elif command == "release-rehearsal":
+        release_rehearsal(*args, revision)
     elif command == "consumer":
         verify_archive(args[0], args[1], revision)
         with tempfile.TemporaryDirectory(prefix="timetable-consumer-") as temporary:
@@ -330,16 +354,18 @@ def main():
         with urllib.request.urlopen(url, timeout=30) as response:
             print(f"Demo accessible: HTTP {response.status}; {expected}")
     elif command == "release-notes":
-        text = (ROOT / "CHANGELOG.md").read_text()
-        package_version = version((ROOT / "pubspec.yaml").read_text())
-        match = re.search(r"^##\s+" + re.escape(package_version) + r"(?:\s[^\n]*)?\n(.*?)(?=^##\s|\Z)", text, re.M | re.S)
-        if not match:
-            raise ValueError("Missing release notes")
-        Path(args[0]).write_text(match[1].strip() + f"\n\n[pub.dev](https://pub.dev/packages/timetable_next/versions/{package_version}) · [Demo](https://masterhiei.github.io/timetable_next/)\n")
+        if len(args) > 1:
+            package = archive_files(Path(args[1]).read_bytes())
+            text = package["CHANGELOG.md"].decode()
+            package_version = version(package["pubspec.yaml"].decode())
+        else:
+            text = (ROOT / "CHANGELOG.md").read_text()
+            package_version = version((ROOT / "pubspec.yaml").read_text())
+        Path(args[0]).write_text(release_notes(text, package_version))
 
 
 if __name__ == "__main__":
     try:
         main()
-    except (ValueError, OSError, subprocess.CalledProcessError) as error:
+    except (ValueError, OSError, tarfile.TarError, subprocess.CalledProcessError) as error:
         sys.exit(str(error))

@@ -63,6 +63,8 @@ jobs:
         with: {persist-credentials: false}
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with: {name: candidate-package, path: build/candidate}
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with: {name: release-notes, path: build}
       - name: Create or resume the release without changing its tag
         env:
           GH_TOKEN: ${{ github.token }}
@@ -70,7 +72,6 @@ jobs:
           VERSION: ${{ needs.verify.outputs.version }}
         run: |
           python3 tool/ci.py verify-archive build/candidate/package.tar.gz build/candidate/manifest.json
-          python3 tool/ci.py release-notes build/release-notes.md
           if ! gh release view "$TAG" > /dev/null; then
             args=()
             if [[ "${VERSION%%+*}" == *-* ]]; then args+=(--prerelease); fi
