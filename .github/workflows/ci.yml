@@ -159,7 +159,7 @@ jobs:
     needs: resolve
     if: needs.resolve.outputs.platforms != '[]'
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 30
+    timeout-minutes: ${{ matrix.platform == 'ios' && 40 || 30 }}
     strategy:
       fail-fast: false
       matrix:
@@ -242,10 +242,44 @@ jobs:
           emulator-boot-timeout: 300
           emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim
           script: cd example && flutter test integration_test/app_test.dart -d emulator-5554
+      - name: Apply upstream iOS simulator log-stream fix
+        if: matrix.platform == 'ios'
+        id: ios-log-fix
+        timeout-minutes: 5
+        run: |
+          # Remove this backport once stable includes flutter/flutter#193142.
+          fix=c3ed85ef987759ee54a6bce275490cde2a238dc1
+          source=packages/flutter_tools/lib/src/ios/simulators.dart
+          patch="$RUNNER_TEMP/ios-log-readiness.patch"
+          git -C "$FLUTTER_ROOT" fetch --no-tags --depth=2 https://github.com/flutter/flutter.git "$fix"
+          git -C "$FLUTTER_ROOT" show --format= --unified=1 "$fix" -- "$source" > "$patch"
+          if git -C "$FLUTTER_ROOT" apply --reverse --check "$patch" 2>/dev/null; then
+            echo 'The Flutter SDK already includes the log-stream fix.'
+          else
+            git -C "$FLUTTER_ROOT" diff --exit-code -- "$source"
+            git -C "$FLUTTER_ROOT" apply --check "$patch"
+            git -C "$FLUTTER_ROOT" apply "$patch"
+            echo 'applied=true' >> "$GITHUB_OUTPUT"
+            echo "Applied Flutter iOS log-stream fix $fix"
+            rm -f "$FLUTTER_ROOT/bin/cache/flutter_tools.stamp"
+          fi
       - name: Run iOS interaction on an available iPhone with bounded startup
         if: matrix.platform == 'ios'
-        timeout-minutes: 25
+        timeout-minutes: 30
         run: python3 tool/ios_test.py
+      - name: Restore Flutter SDK source before caching
+        if: always() && matrix.platform == 'ios' && steps.ios-log-fix.outputs.applied == 'true'
+        timeout-minutes: 1
+        run: |
+          git -C "$FLUTTER_ROOT" apply --reverse "$RUNNER_TEMP/ios-log-readiness.patch"
+          rm -f "$FLUTTER_ROOT/bin/cache/flutter_tools.stamp"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure() && matrix.platform == 'ios'
+        with:
+          name: diagnostics-ios
+          path: build/diagnostics/ios
+          if-no-files-found: ignore
+          retention-days: 14
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure() && matrix.platform == 'web'
         with:
