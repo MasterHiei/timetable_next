@@ -1,6 +1,6 @@
 // Changes from upstream: removed obsolete SDK-upgrade guidance.
 import 'package:black_hole_flutter/black_hole_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_layout_grid/flutter_layout_grid.dart';
 
 import '../config.dart';

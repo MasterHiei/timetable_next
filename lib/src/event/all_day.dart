@@ -6,8 +6,11 @@ import 'package:flutter/widgets.dart';
 import '../utils.dart';
 import 'event.dart';
 
-typedef AllDayEventBuilder<E extends Event> =
-    Widget Function(BuildContext context, E event, AllDayEventLayoutInfo info);
+typedef AllDayEventBuilder<E extends Event> = Widget Function(
+  BuildContext context,
+  E event,
+  AllDayEventLayoutInfo info,
+);
 
 /// Information about how an all-day event was laid out.
 @immutable

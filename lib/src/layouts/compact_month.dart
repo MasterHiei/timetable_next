@@ -1,5 +1,5 @@
 // Changes from upstream: initialized the month from the inherited date controller.
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import '../components/month_widget.dart';
 import '../date/controller.dart';

@@ -2,8 +2,8 @@
 import 'dart:async';
 
 import 'package:black_hole_flutter/black_hole_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:timetable_next/timetable_next.dart';
 
 import 'positioning_demo.dart';

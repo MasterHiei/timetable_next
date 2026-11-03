@@ -1,8 +1,7 @@
 // Changes from upstream: replaced diagnostic-plugin controls with standard theme and locale menus.
 import 'package:black_hole_flutter/black_hole_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:timetable_next/timetable_next.dart';
 
 const _supportedLocales = [

@@ -60,12 +60,12 @@ jobs:
         with: {persist-credentials: false}
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
-          flutter-version: ${{ matrix.sdk == 'minimum' && '3.38.1' || needs.resolve.outputs.stable }}
+          flutter-version: ${{ matrix.sdk == 'minimum' && '3.47.0' || needs.resolve.outputs.stable }}
           cache: true
       - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/.pub-cache/hosted
-          key: pub-${{ runner.os }}-${{ runner.arch }}-${{ matrix.sdk == 'minimum' && '3.38.1' || needs.resolve.outputs.stable }}-${{ hashFiles('pubspec.yaml', 'example/pubspec.yaml', 'example/pubspec.lock') }}
+          key: pub-${{ runner.os }}-${{ runner.arch }}-${{ matrix.sdk == 'minimum' && '3.47.0' || needs.resolve.outputs.stable }}-${{ hashFiles('pubspec.yaml', 'example/pubspec.yaml', 'example/pubspec.lock') }}
       - run: |
           flutter pub upgrade --no-example
           (cd example && flutter pub get)

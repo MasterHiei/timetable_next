@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:timetable_next/timetable_next.dart';
 
 // Shared with example integration; VM tests can resolve this repository path.
@@ -61,13 +61,13 @@ void main() {
   testWidgets('event taps, drag coordinates, navigation and time zoom', (
     tester,
   ) async {
-    Object? tapped;
+    final taps = <Object>[];
     DateTime? dropped;
     final key = GlobalKey<TimetableFixtureState>();
     await tester.pumpWidget(
       TimetableFixture(
         key: key,
-        onTap: (id) => tapped = id,
+        onTap: taps.add,
         onDrag: (date) => dropped = date,
       ),
     );
@@ -88,13 +88,16 @@ void main() {
     );
     final start = tester.getTopLeft(single) + const Offset(8, 8);
     await tester.tapAt(start);
-    expect(tapped, 'single');
+    expect(taps, ['single']);
+    await tester.tap(find.byKey(const ValueKey('all-day')));
+    expect(taps, ['single', 'all-day']);
     final drag = await tester.startGesture(start);
     await tester.pump(kLongPressTimeout);
     await drag.moveBy(const Offset(0, 60));
     await tester.pump();
     await drag.up();
     await tester.pumpAndSettle();
+    expect(taps, ['single', 'all-day']);
     expect(dropped, isNotNull);
     expect(dropped!.isUtc, isTrue);
     expect(

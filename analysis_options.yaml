@@ -11,6 +11,7 @@ analyzer:
 
 linter:
   rules:
+    migrate_design_widgets: true
     # Make asynchronous work explicit without changing animation lifecycles.
     unawaited_futures: true
     discarded_futures: true

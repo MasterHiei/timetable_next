@@ -67,10 +67,10 @@ A Timetable widget that displays [`MonthWidget`]s in a page view.
 
 ## Getting started
 
-Add `timetable_next` to your dependencies. The examples below use these imports:
+Requires Flutter 3.47.0 and Dart 3.13.0 or later. Add `timetable_next` and `material_ui: ^1.8.0` to your dependencies. The examples below use these imports:
 
 ```dart
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:timetable_next/timetable_next.dart';
 ```
 
@@ -85,14 +85,14 @@ Some date/time-related parameters also have special suffixes:
 - `timeOfDay`: A `Duration` from zero to 24 hours, inclusive.
 - `dayOfWeek`: An `int` between one and seven ([`DateTime.monday`](https://api.flutter.dev/flutter/dart-core/DateTime/monday-constant.html) through [`DateTime.sunday`](https://api.flutter.dev/flutter/dart-core/DateTime/sunday-constant.html)).
 
-Timetable currently offers localizations for Chinese (Simplified and Traditional), English, French, German, Hungarian, Italian, Japanese, Portuguese, and Spanish.
-Even if you're just supporting English in your app, you have to add Timetable's localization delegate to your `MaterialApp`/`CupertinoApp`/`WidgetsApp`:
+Timetable provides localizations for Chinese (Simplified and Traditional), English, French, German, Hungarian, Italian, Japanese, Portuguese, and Spanish.
+Add Timetable's localization delegate to your application's `localizationsDelegates`, including for English-only applications. For a Material application:
 
 ```dart
 MaterialApp(
-  localizationsDelegates: [
-    const TimetableLocalizationsDelegate(),
-    // Other delegates, e.g., `GlobalMaterialLocalizations.delegate`
+  localizationsDelegates: const [
+    TimetableLocalizationsDelegate(),
+    ...GlobalMaterialLocalizations.delegates,
   ],
   // ...
 );
@@ -100,27 +100,21 @@ MaterialApp(
 
 > To contribute a localization, follow the steps in [`TimetableLocalizationsDelegate`].
 
-Configure `supportedLocales` and Flutter's localization delegates when localizing the surrounding application.
+Set `supportedLocales` to the languages your application supports.
 
 ### 1. Define your [`Event`]s
 
-Events are provided as instances of [`Event`].
-To get you started, there's the subclass [`BasicEvent`], which you can instantiate directly.
-If you want to be more specific, you can also implement your own class extending [`Event`].
+To get you started, [`BasicEvent`] provides an ID, title and background color. You can also extend [`Event`] for your own data model.
 
-> ⚠️ Most of Timetable's classes accept a type-parameter `E extends Event`.
-> Please set it to your chosen [`Event`]-subclass (e.g., [`BasicEvent`]) to avoid runtime exceptions.
+Use the same `E extends Event` type for your timetable, providers and builders. The examples below use [`BasicEvent`].
 
-In addition, you also need a `Widget` to display your events.
-When using [`BasicEvent`], this can simply be [`BasicEventWidget`].
+Supply an event builder to display your events. [`BasicEventWidget`] displays a [`BasicEvent`].
 
-Events use start-inclusive, end-exclusive spans; zero-duration events are treated as points. Events lasting at least 24 hours are classified as all-day events.
+Events use start-inclusive, end-exclusive spans; zero-duration events are treated as points. By default, events lasting at least 24 hours are classified as all-day events.
 
 ### 2. Create a [`DateController`] (optional)
 
-Similar to a [`ScrollController`] or a [`TabController`], a [`DateController`] is responsible for interacting with Timetable's widgets and managing their state.
-As the name suggests, you can use a [`DateController`] to access the currently visible dates, and also animate or jump to different days.
-And by supplying a [`VisibleDateRange`], you can also customize how many days are visible at once and whether they, e.g., snap to weeks.
+A [`DateController`] exposes the visible dates and supports animated or immediate navigation. Configure [`VisibleDateRange`] to choose the visible day count and snapping behavior.
 
 ```dart
 final myDateController = DateController(
@@ -130,9 +124,7 @@ final myDateController = DateController(
 );
 ```
 
-> Don't forget to [`dispose`][`DateController.dispose`] your controller, e.g., in [`State.dispose`]!
-
-Here are some of the available [`VisibleDateRange`]s:
+Here are some of the available [`VisibleDateRange`] configurations:
 
 - [`VisibleDateRange.days`]: displays `visibleDayCount` consecutive days, snapping to every `swipeRange` days (aligned to `alignmentDate`) in the range from `minDate` to `maxDate`
 - [`VisibleDateRange.week`]: displays and snaps to whole weeks with a customizable `startOfWeek` in the range from `minDate` to `maxDate`
@@ -140,9 +132,7 @@ Here are some of the available [`VisibleDateRange`]s:
 
 ### 3. Create a [`TimeController`] (optional)
 
-Similar to the [`DateController`] above, a [`TimeController`] is also responsible for interacting with Timetable's widgets and managing their state.
-More specifically, it controls the visible time range and zoom factor in a [`MultiDateTimetable`] or [`RecurringMultiDateTimetable`].
-You can also programmatically change those and, e.g., animate out to reveal the full day.
+A [`TimeController`] controls the visible time range and zoom limits in a [`MultiDateTimetable`] or [`RecurringMultiDateTimetable`]. Use it to change the visible range programmatically.
 
 ```dart
 final myTimeController = TimeController(
@@ -155,12 +145,9 @@ final myTimeController = TimeController(
 );
 ```
 
-> Don't forget to [`dispose`][`TimeController.dispose`] your controller, e.g., in [`State.dispose`]!
-
 ### 4. Create your Timetable widget
 
-The configuration for Timetable's widgets is provided via inherited widgets.
-You can use a [`TimetableConfig<E>`] to provide all at once:
+[`TimetableConfig<E>`] provides controllers, event builders, callbacks and styles to descendant widgets through inherited widgets:
 
 ```dart
 final timetable = TimetableConfig<BasicEvent>(
@@ -191,7 +178,7 @@ final timetable = TimetableConfig<BasicEvent>(
 );
 ```
 
-`TimetableConfig` supplies default controllers when none are provided or inherited. Dispose of controllers you create; Timetable manages its own default controllers.
+`TimetableConfig` supplies and manages default controllers when none are provided or inherited. Don't forget to dispose of controllers you create in [`State.dispose`].
 
 An event provider receives a visible date interval and must return only intersecting events. `eventProviderFromFixedList(events)` filters a fixed list for you.
 
@@ -199,10 +186,9 @@ And you're done 🎉
 
 ## Theming
 
-Timetable already supports light and dark themes out of the box, adapting to the ambient `ThemeData`.
-You can, however, customize the styles of almost all components by providing a custom [`TimetableThemeData`].
+Timetable derives default component styles from the ambient `ThemeData`, including light and dark themes. Provide a [`TimetableThemeData`] to customize component styles.
 
-To apply your own theme, specify it in the [`TimetableConfig<E>`] (or directly in a [`TimetableTheme`]). Use a `BuildContext` below your application's `MaterialApp` or `Theme`:
+Pass your theme to [`TimetableConfig<E>`] or [`TimetableTheme`]. Use a `BuildContext` below your application's `MaterialApp` or `Theme`:
 
 ```dart
 TimetableConfig<BasicEvent>(
@@ -228,11 +214,10 @@ TimetableConfig<BasicEvent>(
 )
 ```
 
-> [`TimetableThemeData`] and component styles provide constructors for different use cases:
->
-> - The default constructor takes a `BuildContext` and sometimes a day or month, using information from the ambient theme and locale to generate default values.
->   You can still override all options via optional, named parameters.
-> - The named `raw` constructor accepts explicit style values instead of deriving them from the context.
+[`TimetableThemeData`] and component styles provide two constructor forms:
+
+- The default constructor derives values from the `BuildContext` and any date or time arguments. Named parameters override individual values.
+- The `raw` constructor accepts explicit style values.
 
 ## Advanced Features
 
@@ -240,7 +225,7 @@ TimetableConfig<BasicEvent>(
 
 <img src="https://raw.githubusercontent.com/JonasWanke/timetable/23b4d1b622a8f3b39f3038e218cb780c66f30bd5/doc/demo-dragAndDrop.webp" width="400px" alt="Drag and Drop demo" />
 
-You can easily make events inside the content area of [`MultiDateTimetable`] or [`RecurringMultiDateTimetable`] draggable by wrapping them in a [`PartDayDraggableEvent`]. Here, `event` is a `BasicEvent`:
+Wrap an event widget in [`PartDayDraggableEvent`] to enable dragging within [`MultiDateTimetable`] or [`RecurringMultiDateTimetable`]. Here, `event` is a `BasicEvent`:
 
 ```dart
 PartDayDraggableEvent(
@@ -257,12 +242,10 @@ PartDayDraggableEvent(
 )
 ```
 
-Timetable doesn't automatically show a moving feedback widget at the current pointer position.
-Instead, you can customize this and, e.g., snap event starts to multiples of 15 minutes.
-Have a look at the included example app where we implemented exactly that by displaying the drag feedback as a time overlay.
+The application is responsible for drag feedback. Have a look at the example app, which displays feedback as a time overlay and snaps it to 15-minute intervals.
 
 For widgets dragged into a timetable from outside, give the [`MultiDateContent`] a `geometryKey` (or set `MultiDateTimetable.contentGeometryKey`) and pass it to [`PartDayDraggableEvent.forGeometryKeys`].
-A `geometryKey` is a [`GlobalKey`]`<`[`MultiDateContentGeometry`]`>` with which the current drag offset can be converted to a [`DateTime`].
+A `geometryKey` is a [`GlobalKey`]`<`[`MultiDateContentGeometry`]`>` whose state maps global pointer offsets to [`DateTime`] values.
 
 ```dart
 final geometryKey = GlobalKey<MultiDateContentGeometry>();
@@ -281,18 +264,13 @@ final draggableEvent = PartDayDraggableEvent.forGeometryKeys(
 final dateTime = geometryKey.currentState!.resolveOffset(globalOffset);
 ```
 
-You could even offer to drag the event into one of multiple timetables:
-Give each timetable its own `geometryKey` and pass all of them to [`PartDayDraggableEvent.forGeometryKeys`].
-In the callbacks, you receive the `geometryKey` of the timetable that the event is currently being dragged over.
-See [`PartDayDraggableEvent.geometryKeys`] for the exact behavior.
+To drag between timetables, give each timetable a `geometryKey` and pass the keys to [`PartDayDraggableEvent.forGeometryKeys`]. The callbacks identify the timetable under the pointer. See [`PartDayDraggableEvent.geometryKeys`] for key selection behavior.
 
 ### Time Overlays
 
 <img src="doc/screenshot-timeOverlays.webp" width="400px" alt="Time overlays" />
 
-In addition to displaying events, [`MultiDateTimetable`] and [`RecurringMultiDateTimetable`] can display overlays for time ranges on every day.
-In the screenshot above, a light gray overlay is displayed on weekdays before 8 a.m. and after 8 p.m., and over the full day for weekends.
-Time overlays are provided similarly to events: Just add a `timeOverlayProvider` to your [`TimetableConfig<E>`] (or use a [`DefaultTimeOverlayProvider`] directly).
+[`MultiDateTimetable`] and [`RecurringMultiDateTimetable`] can display overlays for time ranges independently of events. Set `timeOverlayProvider` on [`TimetableConfig<E>`], or provide a [`DefaultTimeOverlayProvider`] directly. The provider receives a `BuildContext` and a date, and returns a list of [`TimeOverlay`].
 
 ```dart
 TimetableConfig<BasicEvent>(
@@ -315,12 +293,13 @@ TimetableConfig<BasicEvent>(
 )
 ```
 
-The provider receives a `BuildContext` and a date, and returns a list of [`TimeOverlay`] for that date.
-The example above therefore draws a light gray background before 8 a.m. and after 8 p.m. on every day.
+This example shades the time before 8 a.m. and after 8 p.m. on every day.
 
 ## Migrating from timetable
 
 Replace the `timetable` dependency with `timetable_next` and update imports to `package:timetable_next/timetable_next.dart`. Public types and constructors retain their existing names. `package:timetable_next/timetable.dart` remains available as a compatibility entry.
+
+Material hosts must migrate their widgets, themes and localization delegates together to `material_ui`. Follow the [official migration guide](https://docs.flutter.dev/release/breaking-changes/material-ui-and-cupertino-ui).
 
 See the [changelog](CHANGELOG.md) for fixes and compatibility changes.
 
@@ -345,9 +324,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and [QA](doc
 [`DateTime`]: https://api.flutter.dev/flutter/dart-core/DateTime-class.html
 [`Duration`]: https://api.flutter.dev/flutter/dart-core/Duration-class.html
 [`GlobalKey`]: https://api.flutter.dev/flutter/widgets/GlobalKey-class.html
-[`ScrollController`]: https://api.flutter.dev/flutter/widgets/ScrollController-class.html
 [`State.dispose`]: https://api.flutter.dev/flutter/widgets/State/dispose.html
-[`TabController`]: https://api.flutter.dev/flutter/material/TabController-class.html
 
 <!-- timetable -->
 
@@ -355,7 +332,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and [QA](doc
 [`BasicEventWidget`]: lib/src/event/basic.dart
 [`CompactMonthTimetable`]: lib/src/layouts/compact_month.dart
 [`DateController`]: lib/src/date/controller.dart
-[`DateController.dispose`]: lib/src/date/controller.dart
 [`DefaultTimeOverlayProvider`]: lib/src/time/overlay.dart
 [`Event`]: lib/src/event/event.dart
 [`MonthWidget`]: lib/src/components/month_widget.dart
@@ -367,7 +343,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and [QA](doc
 [`PartDayDraggableEvent.geometryKeys`]: lib/src/components/multi_date_content.dart
 [`RecurringMultiDateTimetable`]: lib/src/layouts/recurring_multi_date.dart
 [`TimeController`]: lib/src/time/controller.dart
-[`TimeController.dispose`]: lib/src/time/controller.dart
 [`TimeOverlay`]: lib/src/time/overlay.dart
 [`TimetableConfig<E>`]: lib/src/config.dart
 [`TimetableLocalizationsDelegate`]: lib/src/localization.dart

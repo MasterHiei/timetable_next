@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../components/date_header.dart';
 import '../components/multi_date_content.dart';
@@ -18,13 +18,14 @@ import '../utils.dart';
 import '../utils/constraints_passing_column.dart';
 import 'recurring_multi_date.dart';
 
-typedef MultiDateTimetableHeaderBuilder =
-    Widget Function(BuildContext context, double? leadingWidth);
-typedef MultiDateTimetableContentBuilder =
-    Widget Function(
-      BuildContext context,
-      ValueChanged<double> onLeadingWidthChanged,
-    );
+typedef MultiDateTimetableHeaderBuilder = Widget Function(
+  BuildContext context,
+  double? leadingWidth,
+);
+typedef MultiDateTimetableContentBuilder = Widget Function(
+  BuildContext context,
+  ValueChanged<double> onLeadingWidthChanged,
+);
 
 /// A Timetable widget that displays multiple consecutive days.
 ///
@@ -295,9 +296,8 @@ class _DefaultContentLeading extends StatelessWidget {
               // `TimeIndicators.hours` overwrites the style provider's labels
               // by default, but here we want the user's style provider from the
               // ambient theme to take precedence.
-              styleProvider: TimetableTheme.of(
-                context,
-              )?.timeIndicatorStyleProvider,
+              styleProvider: TimetableTheme.of(context)
+                  ?.timeIndicatorStyleProvider,
             ),
           ),
         ),

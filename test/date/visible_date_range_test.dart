@@ -63,18 +63,12 @@ void main() {
         (14, 0, 31, 0, 18),
       ]) {
     test('range limits: count=$count min=$min max=$max', () {
-      final range =
-          VisibleDateRange.days(
-                count,
-                alignmentDate: alignment,
-                minDate: min == null
-                    ? null
-                    : alignment.add(Duration(days: min)),
-                maxDate: max == null
-                    ? null
-                    : alignment.add(Duration(days: max)),
-              )
-              as DaysVisibleDateRange;
+      final range = VisibleDateRange.days(
+        count,
+        alignmentDate: alignment,
+        minDate: min == null ? null : alignment.add(Duration(days: min)),
+        maxDate: max == null ? null : alignment.add(Duration(days: max)),
+      ) as DaysVisibleDateRange;
       expect(range.minPage, expectedMin);
       expect(range.maxPage, expectedMax);
       for (final page in [-40.0, 0.0, 40.0]) {

@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:timetable_next/timetable_next.dart';
 
 enum FixtureLayout { multi, recurring, month }
@@ -87,9 +86,8 @@ class TimetableFixtureState extends State<TimetableFixture> {
     supportedLocales: const [Locale('en'), Locale('zh', 'CN')],
     theme: ThemeData(brightness: widget.brightness),
     builder: (context, child) => MediaQuery(
-      data: MediaQuery.of(
-        context,
-      ).copyWith(textScaler: TextScaler.linear(widget.scale)),
+      data: MediaQuery.of(context)
+          .copyWith(textScaler: TextScaler.linear(widget.scale)),
       child: child!,
     ),
     home: Scaffold(
@@ -99,16 +97,17 @@ class TimetableFixtureState extends State<TimetableFixture> {
         eventProvider: eventProviderFromFixedList(widget.empty ? [] : events),
         eventBuilder: (context, event) => PartDayDraggableEvent(
           onDragEnd: widget.onDrag,
-          child: GestureDetector(
+          child: BasicEventWidget(
+            event,
             key: ValueKey(event.id.toString()),
             onTap: () => widget.onTap?.call(event.id),
-            child: BasicEventWidget(event),
           ),
         ),
-        allDayEventBuilder: (context, event, info) => GestureDetector(
+        allDayEventBuilder: (context, event, info) => BasicAllDayEventWidget(
+          event,
           key: ValueKey(event.id.toString()),
+          info: info,
           onTap: () => widget.onTap?.call(event.id),
-          child: BasicAllDayEventWidget(event, info: info),
         ),
         child: switch (widget.layout) {
           FixtureLayout.multi => MultiDateTimetable<BasicEvent>(),
