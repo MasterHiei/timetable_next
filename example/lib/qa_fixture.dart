@@ -97,16 +97,17 @@ class TimetableFixtureState extends State<TimetableFixture> {
         eventProvider: eventProviderFromFixedList(widget.empty ? [] : events),
         eventBuilder: (context, event) => PartDayDraggableEvent(
           onDragEnd: widget.onDrag,
-          child: GestureDetector(
+          child: BasicEventWidget(
+            event,
             key: ValueKey(event.id.toString()),
             onTap: () => widget.onTap?.call(event.id),
-            child: BasicEventWidget(event),
           ),
         ),
-        allDayEventBuilder: (context, event, info) => GestureDetector(
+        allDayEventBuilder: (context, event, info) => BasicAllDayEventWidget(
+          event,
           key: ValueKey(event.id.toString()),
+          info: info,
           onTap: () => widget.onTap?.call(event.id),
-          child: BasicAllDayEventWidget(event, info: info),
         ),
         child: switch (widget.layout) {
           FixtureLayout.multi => MultiDateTimetable<BasicEvent>(),

@@ -9,7 +9,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   for (final layout in FixtureLayout.values) {
     testWidgets('$layout renders and responds to gestures', (tester) async {
-      Object? tapped;
+      final taps = <Object>[];
       DateTime? dropped;
       var drops = 0;
       final key = GlobalKey<TimetableFixtureState>();
@@ -17,7 +17,7 @@ void main() {
         TimetableFixture(
           key: key,
           layout: layout,
-          onTap: (id) => tapped = id,
+          onTap: taps.add,
           onDrag: (date) {
             dropped = date;
             drops++;
@@ -44,13 +44,16 @@ void main() {
         expect(find.byKey(const ValueKey('all-day')), findsOneWidget);
         final start = tester.getTopLeft(single) + const Offset(8, 8);
         await tester.tapAt(start);
-        expect(tapped, 'single');
+        expect(taps, ['single']);
+        await tester.tap(find.byKey(const ValueKey('all-day')));
+        expect(taps, ['single', 'all-day']);
         final drag = await tester.startGesture(start);
         await tester.pump(kLongPressTimeout);
         await drag.moveBy(const Offset(0, 60));
         await tester.pump();
         await drag.up();
         await tester.pumpAndSettle();
+        expect(taps, ['single', 'all-day']);
         expect(drops, 1);
         expect(dropped, isNotNull);
         expect(dropped!.isUtc, isTrue);
