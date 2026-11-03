@@ -20,8 +20,8 @@ Maintenance prerelease with no changes to calendar behavior or public APIs.
 
 ### Fixed
 
-- Wait for simulator logs before launching the iOS test app, avoiding a race in VM Service discovery.
-- Preserve the original iOS CI test error when simulator cleanup also fails.
+- Fix an iOS CI startup race that could leave integration tests waiting for the VM Service.
+- Preserve the original iOS test failure when simulator cleanup also fails.
 
 ## 1.0.0-beta.1 - 2026-10-31
 
@@ -34,14 +34,15 @@ First independent release based on timetable 1.0.0-alpha.15.
 
 ### Fixed
 
-- Ensure `DateController` and `TimeController` animation futures wait for completion and also complete when animations are interrupted or controllers are disposed.
-- Notify `DateController` listeners when scroll activity changes, even if the visible page is unchanged.
-- Recalculate zoom limits when views detach or switch to a different `TimeController`.
-- Preserve microsecond precision when querying events and copying dates, including events just before midnight.
-- Preserve exclusive end times when converting events to time overlays, and return no overlay for zero-duration events.
-- Open `CompactMonthTimetable` at the month selected by its `DateController`.
-- Keep `MonthPageController.value` readable when no view is attached, and notify listeners on the first month change. Replacing a `MonthPageView` controller displays the new controller's month without disposing caller-owned controllers.
-- Respect parent size constraints in calendar columns, time labels and compact month views, including all-day headers constrained to zero height.
-- Stop current-time repaint timers and remove unused controller listeners when views detach.
+- Complete `DateController` and `TimeController` animation futures when animations finish, are interrupted or their controllers are disposed.
+- Notify `DateController` listeners when scroll activity changes, even when the visible page stays the same.
+- Update zoom limits when views detach or change `TimeController`.
+- Preserve microseconds in event queries and date copies, including events immediately before midnight.
+- Keep event end times exclusive when creating time overlays and return no overlay for zero-duration events.
+- Initialize `CompactMonthTimetable` from the month selected by its `DateController`.
+- Keep `MonthPageController.value` available without an attached view and notify listeners on the first month change.
+- Display the new controller's month when `MonthPageView` changes controllers, without disposing caller-owned controllers.
+- Honor parent constraints in calendar columns, time labels and compact month views, including zero-height all-day headers.
+- Cancel current-time repaint timers and detach unused controller listeners when views are removed.
 
 Earlier releases belong to the original [timetable changelog](https://github.com/JonasWanke/timetable/blob/23b4d1b622a8f3b39f3038e218cb780c66f30bd5/CHANGELOG.md).
