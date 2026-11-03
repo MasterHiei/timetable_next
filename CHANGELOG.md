@@ -2,7 +2,7 @@
 
 <!-- Changes from upstream: replaced mixed upstream notes with independent release notes and a history link. -->
 
-## Unreleased
+## 1.0.0-beta.3 - 2026-11-03
 
 ### Breaking changes
 
