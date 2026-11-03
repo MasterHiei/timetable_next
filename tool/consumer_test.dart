@@ -1,6 +1,6 @@
 import 'package:dart_date/dart_date.dart' show Interval;
-import 'package:flutter/material.dart' hide Interval;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart' hide Interval;
 import 'package:timetable_next/timetable.dart' as compatibility;
 import 'package:timetable_next/timetable_next.dart';
 
@@ -18,9 +18,17 @@ void main() {
       start: date.add(const Duration(hours: 9)),
       end: date.add(const Duration(hours: 10)),
     );
-    final provider = eventProviderFromFixedList([event]);
+    final allDay = BasicEvent(
+      id: 'all-day',
+      title: 'Published all-day event',
+      backgroundColor: Colors.green,
+      start: date,
+      end: date.add(const Duration(days: 1)),
+    );
+    final provider = eventProviderFromFixedList([event, allDay]);
     expect(provider(Interval(date, date.add(const Duration(days: 1)))), [
       event,
+      allDay,
     ]);
     expect(controller, isA<compatibility.DateController>());
     expect(event, isA<compatibility.BasicEvent>());
@@ -42,6 +50,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Published package'), findsOneWidget);
+    expect(find.text('Published all-day event'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
     controller.dispose();
     time.dispose();

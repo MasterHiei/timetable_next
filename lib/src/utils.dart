@@ -40,11 +40,15 @@ extension IntTimetable on int {
   }
 }
 
-typedef MonthWidgetBuilder =
-    Widget Function(BuildContext context, DateTime month);
+typedef MonthWidgetBuilder = Widget Function(
+  BuildContext context,
+  DateTime month,
+);
 typedef WeekWidgetBuilder = Widget Function(BuildContext context, Week week);
-typedef DateWidgetBuilder =
-    Widget Function(BuildContext context, DateTime date);
+typedef DateWidgetBuilder = Widget Function(
+  BuildContext context,
+  DateTime date,
+);
 
 extension DateTimeTimetable on DateTime {
   static DateTime date(int year, [int month = 1, int day = 1]) {

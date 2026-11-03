@@ -112,9 +112,8 @@ class DaysVisibleDateRange extends VisibleDateRange {
     minPage = minDate == null ? null : getTargetPageForFocus(minDate!.page);
     maxPage = maxDate == null
         ? null
-        : _getMinimumPageForFocus(
-            maxDate!.page,
-          ).coerceAtLeast(minPage ?? double.negativeInfinity);
+        : _getMinimumPageForFocus(maxDate!.page)
+              .coerceAtLeast(minPage ?? double.negativeInfinity);
   }
 
   final int swipeRange;

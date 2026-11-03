@@ -209,9 +209,9 @@ class _DayEventsLayoutDelegate<E extends Event>
       final top = timeToY(event.start)
           .coerceAtMost(size.height - durationToY(style.minEventDuration))
           .coerceAtMost(size.height - style.minEventHeight);
-      final height = durationToY(
-        _durationOn(event, size.height),
-      ).clamp(0, size.height - top).toDouble();
+      final height = durationToY(_durationOn(event, size.height))
+          .clamp(0, size.height - top)
+          .toDouble();
 
       final position = positions.eventPositions[event]!;
       final columnWidth =

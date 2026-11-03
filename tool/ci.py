@@ -275,7 +275,7 @@ def main():
                 archive.extractall(package, filter="data")
             consumer = directory / "consumer"
             (consumer / "test").mkdir(parents=True)
-            (consumer / "pubspec.yaml").write_text('name: timetable_consumer\npublish_to: none\nenvironment:\n  sdk: ">=3.10.0 <4.0.0"\ndependencies:\n  flutter:\n    sdk: flutter\n  dart_date: ^1.5.3\n  timetable_next:\n    path: ../package\ndev_dependencies:\n  flutter_test:\n    sdk: flutter\n')
+            (consumer / "pubspec.yaml").write_text('name: timetable_consumer\npublish_to: none\nenvironment:\n  sdk: ">=3.13.0 <4.0.0"\n  flutter: ">=3.47.0"\ndependencies:\n  flutter:\n    sdk: flutter\n  dart_date: ^1.5.3\n  material_ui: ^1.8.0\n  timetable_next:\n    path: ../package\ndev_dependencies:\n  flutter_test:\n    sdk: flutter\n')
             (consumer / "test/consumer_test.dart").write_bytes((ROOT / "tool/consumer_test.dart").read_bytes())
             for cmd in (("flutter", "pub", "get"), ("flutter", "analyze", "--fatal-infos"), ("flutter", "test", "--no-pub")):
                 subprocess.run(cmd, cwd=consumer, check=True)

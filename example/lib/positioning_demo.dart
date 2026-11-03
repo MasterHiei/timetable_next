@@ -2,7 +2,7 @@
 import 'dart:math';
 
 import 'package:black_hole_flutter/black_hole_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:timetable_next/timetable_next.dart';
 
 final positioningDemoEvents = <BasicEvent>[
@@ -202,9 +202,9 @@ class _DemoEvent extends BasicEvent {
       );
 
   static Color _getColor(String id) {
-    return Random(
-      id.hashCode,
-    ).nextColorHsv(saturation: 0.6, value: 0.8, alpha: 1).toColor();
+    return Random(id.hashCode)
+        .nextColorHsv(saturation: 0.6, value: 0.8, alpha: 1)
+        .toColor();
   }
 }
 

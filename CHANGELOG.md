@@ -2,6 +2,18 @@
 
 <!-- Changes from upstream: replaced mixed upstream notes with independent release notes and a history link. -->
 
+## Unreleased
+
+### Breaking changes
+
+- Require Flutter 3.47.0 and Dart 3.13.0 or later.
+- Migrate Material widgets and themes to `material_ui`. Update application imports to `package:material_ui/material_ui.dart`.
+- Use `GlobalMaterialLocalizations.delegates` from `material_ui` alongside `TimetableLocalizationsDelegate` for localization.
+
+### Changed
+
+- Upgrade `black_hole_flutter` to 2.x for standalone Material support.
+
 ## 1.0.0-beta.2 - 2026-11-01
 
 Maintenance prerelease with no changes to calendar behavior or public APIs.

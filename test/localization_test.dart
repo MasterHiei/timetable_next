@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:timetable_next/timetable_next.dart';
 
 void main() {
@@ -8,6 +8,48 @@ void main() {
   tearDown(() => Intl.defaultLocale = original);
   const delegate = TimetableLocalizationsDelegate();
   const week = Week(2024, 9);
+  testWidgets('locale changes update timetable labels and Material tooltips', (
+    tester,
+  ) async {
+    Widget app(Locale locale) => MaterialApp(
+      locale: locale,
+      supportedLocales: const [Locale('en'), Locale('zh', 'CN')],
+      localizationsDelegates: const [
+        TimetableLocalizationsDelegate(),
+        ...GlobalMaterialLocalizations.delegates,
+      ],
+      home: Scaffold(
+        body: Column(
+          children: [
+            MonthIndicator(DateTime.utc(2024, 2)),
+            DateHeader(DateTime.utc(2024, 2, 26)),
+            BackButton(onPressed: () {}),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpWidget(app(const Locale('en')));
+    await tester.pumpAndSettle();
+    expect(find.text('February'), findsOneWidget);
+    expect(find.text('Mon'), findsOneWidget);
+    expect(find.byTooltip('Back'), findsOneWidget);
+    await tester.longPress(find.byType(DateHeader));
+    await tester.pumpAndSettle();
+    expect(find.text('Monday, February 26, 2024'), findsOneWidget);
+    await tester.pumpWidget(app(const Locale('zh', 'CN')));
+    await tester.pumpAndSettle();
+    expect(find.text('February'), findsNothing);
+    expect(find.text('Monday, February 26, 2024'), findsNothing);
+    expect(find.text('二月'), findsOneWidget);
+    expect(find.text('周一'), findsOneWidget);
+    expect(find.byTooltip('返回'), findsOneWidget);
+    await tester.longPress(find.byType(DateHeader));
+    await tester.pumpAndSettle();
+    expect(find.text('2024年2月26日星期一'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   for (final (locale, labels, description) in <(Locale, List<String>, String)>[
     (
       const Locale('de'),
@@ -76,9 +118,9 @@ void main() {
     expect(Intl.defaultLocale, 'fr');
     expect(delegate.shouldReload(fallback), isFalse);
     expect(
-      () => const TimetableLocalizationsDelegate(
-        fallbackLocale: Locale('xx'),
-      ).isSupported(const Locale('en')),
+      () =>
+          const TimetableLocalizationsDelegate(fallbackLocale: Locale('xx'))
+              .isSupported(const Locale('en')),
       throwsAssertionError,
     );
   });

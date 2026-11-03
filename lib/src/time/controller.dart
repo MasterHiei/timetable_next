@@ -1,5 +1,5 @@
 // Changes from upstream: fixed animation futures, resource cleanup and detached-client limits.
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import '../config.dart';
 import '../layouts/multi_date.dart';

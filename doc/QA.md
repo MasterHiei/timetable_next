@@ -4,7 +4,7 @@
 
 This is a Flutter widget library. Tests cover its date/event semantics, controllers, layout and interaction. The example supplies Android/iOS/Web host applications. Persistence, synchronization, time-zone conversion and recurrence rules belong to the host application.
 
-Flutter 3.38.1 is the minimum package endpoint. CI resolves the current stable version once per run. Both SDKs validate package contracts; only stable builds and exercises the example platforms. This does not certify signing, app-store distribution, other host configurations or real-device performance.
+Flutter 3.47.0 is the minimum package endpoint. CI resolves the current stable version once per run. Both SDKs validate package contracts; only stable builds and exercises the example platforms. This does not certify signing, app-store distribution, other host configurations or real-device performance.
 
 ## Local development
 

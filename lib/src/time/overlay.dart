@@ -35,8 +35,10 @@ enum TimeOverlayPosition { behindEvents, inFrontOfEvents }
 ///
 /// * [emptyTimeOverlayProvider], which returns an empty list for all dates.
 /// * [mergeTimeOverlayProviders], which merges multiple [TimeOverlayProvider]s.
-typedef TimeOverlayProvider =
-    List<TimeOverlay> Function(BuildContext context, DateTime date);
+typedef TimeOverlayProvider = List<TimeOverlay> Function(
+  BuildContext context,
+  DateTime date,
+);
 
 // Keep the public provider value rather than changing it to a function declaration.
 // ignore: prefer_function_declarations_over_variables

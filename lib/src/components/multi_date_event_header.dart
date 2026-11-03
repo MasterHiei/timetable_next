@@ -2,8 +2,8 @@
 import 'dart:ui';
 
 import 'package:black_hole_flutter/black_hole_flutter.dart';
-import 'package:flutter/material.dart' hide Interval;
 import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart' hide Interval;
 
 import '../callbacks.dart';
 import '../config.dart';
@@ -419,12 +419,10 @@ class _EventsLayout extends RenderBox
         ContainerRenderObjectMixin<RenderBox, _EventParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, _EventParentData> {
   _EventsLayout({
-    required DatePageValue pageValue,
-    required double eventHeight,
+    required this._pageValue,
+    required this._eventHeight,
     required Map<int, int> maxEventRows,
-  }) : _pageValue = pageValue,
-       _eventHeight = eventHeight,
-       _maxEventPositions = maxEventRows;
+  }) : _maxEventPositions = maxEventRows;
 
   DatePageValue _pageValue;
   DatePageValue get pageValue => _pageValue;

@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:timetable_next/timetable_next.dart';
 
 enum FixtureLayout { multi, recurring, month }
@@ -87,9 +86,8 @@ class TimetableFixtureState extends State<TimetableFixture> {
     supportedLocales: const [Locale('en'), Locale('zh', 'CN')],
     theme: ThemeData(brightness: widget.brightness),
     builder: (context, child) => MediaQuery(
-      data: MediaQuery.of(
-        context,
-      ).copyWith(textScaler: TextScaler.linear(widget.scale)),
+      data: MediaQuery.of(context)
+          .copyWith(textScaler: TextScaler.linear(widget.scale)),
       child: child!,
     ),
     home: Scaffold(

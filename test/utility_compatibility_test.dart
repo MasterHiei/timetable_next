@@ -18,15 +18,14 @@ void main() {
       day.add(const Duration(days: 1)),
     );
     expect(
-      const Duration(
-        hours: 1,
-      ).coerceIn(Duration.zero, const Duration(minutes: 30)),
+      const Duration(hours: 1)
+          .coerceIn(Duration.zero, const Duration(minutes: 30)),
       const Duration(minutes: 30),
     );
     expect(
-      () => const Duration(
-        hours: 1,
-      ).coerceIn(const Duration(hours: 2), Duration.zero),
+      () =>
+          const Duration(hours: 1)
+              .coerceIn(const Duration(hours: 2), Duration.zero),
       throwsArgumentError,
     );
   });

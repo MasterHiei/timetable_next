@@ -4,9 +4,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 
 import '../utils.dart';
 import 'controller.dart';
@@ -368,11 +368,9 @@ class _VerticalOverflowBox extends SingleChildRenderObjectWidget {
 class _RenderVerticalOverflowBox extends RenderShiftedBox {
   _RenderVerticalOverflowBox({
     RenderBox? child,
-    required double height,
-    required double offset,
-  }) : _height = height,
-       _offset = offset,
-       super(child);
+    required this._height,
+    required this._offset,
+  }) : super(child);
 
   double get height => _height;
   double _height;

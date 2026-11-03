@@ -67,10 +67,10 @@ A Timetable widget that displays [`MonthWidget`]s in a page view.
 
 ## Getting started
 
-Add `timetable_next` to your dependencies. The examples below use these imports:
+Requires Flutter 3.47.0 and Dart 3.13.0 or later. Add `timetable_next` and `material_ui: ^1.8.0` to your dependencies. The examples below use these imports:
 
 ```dart
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:timetable_next/timetable_next.dart';
 ```
 
@@ -90,9 +90,9 @@ Even if you're just supporting English in your app, you have to add Timetable's 
 
 ```dart
 MaterialApp(
-  localizationsDelegates: [
-    const TimetableLocalizationsDelegate(),
-    // Other delegates, e.g., `GlobalMaterialLocalizations.delegate`
+  localizationsDelegates: const [
+    TimetableLocalizationsDelegate(),
+    ...GlobalMaterialLocalizations.delegates,
   ],
   // ...
 );
@@ -322,6 +322,8 @@ The example above therefore draws a light gray background before 8 a.m. and af
 
 Replace the `timetable` dependency with `timetable_next` and update imports to `package:timetable_next/timetable_next.dart`. Public types and constructors retain their existing names. `package:timetable_next/timetable.dart` remains available as a compatibility entry.
 
+Material hosts must migrate their widgets, themes and localization delegates together to `material_ui`. Follow the [official migration guide](https://docs.flutter.dev/release/breaking-changes/material-ui-and-cupertino-ui).
+
 See the [changelog](CHANGELOG.md) for fixes and compatibility changes.
 
 ## Example and contributing
@@ -347,7 +349,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and [QA](doc
 [`GlobalKey`]: https://api.flutter.dev/flutter/widgets/GlobalKey-class.html
 [`ScrollController`]: https://api.flutter.dev/flutter/widgets/ScrollController-class.html
 [`State.dispose`]: https://api.flutter.dev/flutter/widgets/State/dispose.html
-[`TabController`]: https://api.flutter.dev/flutter/material/TabController-class.html
+[`TabController`]: https://pub.dev/documentation/material_ui/latest/material_ui/TabController-class.html
 
 <!-- timetable -->
 

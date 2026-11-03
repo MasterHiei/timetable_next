@@ -2,8 +2,8 @@
 import 'dart:math' as math;
 
 import 'package:black_hole_flutter/black_hole_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 
 import '../theme.dart';
 import '../utils.dart';
@@ -188,8 +188,7 @@ class _TimeIndicatorsLayout extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, _TimeIndicatorParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, _TimeIndicatorParentData> {
-  _TimeIndicatorsLayout({required TextDirection textDirection})
-    : _textDirection = textDirection;
+  _TimeIndicatorsLayout({required this._textDirection});
 
   TextDirection _textDirection;
   TextDirection get textDirection => _textDirection;

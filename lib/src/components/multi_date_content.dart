@@ -1,6 +1,5 @@
 // Changes from upstream: replaced Dartx collection helpers and clarified geometry documentation.
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart' hide Interval;
 
 import '../config.dart';
@@ -141,41 +140,35 @@ class MultiDateContentGeometry extends State<_MultiDateContentGeometryWidget> {
 
 typedef PartDayDragStartCallback = VoidCallback;
 
-typedef PartDayDragUpdateCallbackRaw =
-    void Function(
-      GlobalKey<MultiDateContentGeometry>? geometryKey,
-      DateTime dateTime,
-    );
+typedef PartDayDragUpdateCallbackRaw = void Function(
+  GlobalKey<MultiDateContentGeometry>? geometryKey,
+  DateTime dateTime,
+);
 typedef PartDayDragUpdateCallback = void Function(DateTime dateTime);
-typedef PartDayDragUpdateCallbackWithGeometryKey =
-    void Function(
-      GlobalKey<MultiDateContentGeometry> geometryKey,
-      DateTime dateTime,
-    );
+typedef PartDayDragUpdateCallbackWithGeometryKey = void Function(
+  GlobalKey<MultiDateContentGeometry> geometryKey,
+  DateTime dateTime,
+);
 
-typedef PartDayDragEndCallbackRaw =
-    void Function(
-      GlobalKey<MultiDateContentGeometry>? geometryKey,
-      DateTime? dateTime,
-    );
+typedef PartDayDragEndCallbackRaw = void Function(
+  GlobalKey<MultiDateContentGeometry>? geometryKey,
+  DateTime? dateTime,
+);
 typedef PartDayDragEndCallback = void Function(DateTime? dateTime);
-typedef PartDayDragEndCallbackWithGeometryKey =
-    void Function(
-      GlobalKey<MultiDateContentGeometry> geometryKey,
-      DateTime? dateTime,
-    );
+typedef PartDayDragEndCallbackWithGeometryKey = void Function(
+  GlobalKey<MultiDateContentGeometry> geometryKey,
+  DateTime? dateTime,
+);
 
-typedef PartDayDragCanceledCallbackRaw =
-    void Function(
-      GlobalKey<MultiDateContentGeometry>? geometryKey,
-      bool wasMoved,
-    );
+typedef PartDayDragCanceledCallbackRaw = void Function(
+  GlobalKey<MultiDateContentGeometry>? geometryKey,
+  bool wasMoved,
+);
 typedef PartDayDragCanceledCallback = void Function(bool wasMoved);
-typedef PartDayDragCanceledCallbackWithGeometryKey =
-    void Function(
-      GlobalKey<MultiDateContentGeometry> geometryKey,
-      bool wasMoved,
-    );
+typedef PartDayDragCanceledCallbackWithGeometryKey = void Function(
+  GlobalKey<MultiDateContentGeometry> geometryKey,
+  bool wasMoved,
+);
 
 /// A widget that makes its child draggable starting from long press.
 ///

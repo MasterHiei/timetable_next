@@ -1,6 +1,6 @@
 // Changes from upstream: removed obsolete SDK-upgrade guidance.
 import 'package:black_hole_flutter/black_hole_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../callbacks.dart';
 import '../event/all_day.dart';
@@ -39,9 +39,8 @@ class MultiDateEventHeaderOverflow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final onMultiDateHeaderOverflowTap = DefaultTimetableCallbacks.of(
-      context,
-    )?.onMultiDateHeaderOverflowTap;
+    final onMultiDateHeaderOverflowTap = DefaultTimetableCallbacks.of(context)
+        ?.onMultiDateHeaderOverflowTap;
     return BasicAllDayEventWidget(
       BasicEvent(
         id: date,

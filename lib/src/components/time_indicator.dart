@@ -1,6 +1,6 @@
 // Changes from upstream: removed an obsolete import and SDK-upgrade workaround.
 import 'package:black_hole_flutter/black_hole_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
 import '../config.dart';

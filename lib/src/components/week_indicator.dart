@@ -1,6 +1,6 @@
 // Changes from upstream: used collection minimum selection while preserving label tie behavior.
 import 'package:black_hole_flutter/black_hole_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../callbacks.dart';
 import '../config.dart';

@@ -1,8 +1,116 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:timetable_next/timetable_next.dart';
 
 void main() {
+  testWidgets('Material theme changes update events and painted dividers', (
+    tester,
+  ) async {
+    final day = DateTime.utc(2024, 2, 26);
+    final date = DateController(initialDate: day);
+    final time = TimeController();
+    final events = [
+      BasicEvent(
+        id: 'part',
+        title: 'part',
+        backgroundColor: Colors.blue,
+        start: day.add(const Duration(hours: 9)),
+        end: day.add(const Duration(hours: 10)),
+      ),
+      for (final id in ['all-day', 'explicit'])
+        BasicEvent(
+          id: id,
+          title: id,
+          backgroundColor: Colors.green,
+          start: day,
+          end: day.add(const Duration(days: 1)),
+        ),
+    ];
+    final provider = eventProviderFromFixedList(events);
+    const explicitText = TextStyle(
+      fontFamily: 'explicit',
+      fontSize: 16,
+      color: Colors.purple,
+    );
+    Widget app(ThemeData theme) => MaterialApp(
+      theme: theme,
+      localizationsDelegates: const [TimetableLocalizationsDelegate()],
+      home: Scaffold(
+        body: TimetableConfig<BasicEvent>(
+          dateController: date,
+          timeController: time,
+          eventProvider: provider,
+          eventBuilder: (_, event) => BasicEventWidget(event),
+          allDayEventBuilder: (context, event, info) => BasicAllDayEventWidget(
+            event,
+            info: info,
+            style: event.id == 'explicit'
+                ? BasicAllDayEventWidgetStyle(
+                    context,
+                    event,
+                    textStyle: explicitText,
+                  )
+                : null,
+          ),
+          child: MultiDateTimetable<BasicEvent>(),
+        ),
+      ),
+    );
+    State? viewState;
+    for (final (brightness, family, color, width) in [
+      (Brightness.light, 'first', Colors.red, 1.0),
+      (Brightness.dark, 'second', Colors.orange, 3.0),
+    ]) {
+      await tester.pumpWidget(
+        app(
+          ThemeData(
+            brightness: brightness,
+            textTheme: TextTheme(bodyMedium: TextStyle(fontFamily: family)),
+            dividerTheme: DividerThemeData(color: color, thickness: width),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final currentState = tester.state(
+        find.byType(MultiDateTimetable<BasicEvent>),
+      );
+      viewState ??= currentState;
+      expect(currentState, same(viewState));
+      for (final (label, fontSize) in [('part', 12.0), ('all-day', 14.0)]) {
+        final renderedText = tester.widget<RichText>(
+          find.descendant(
+            of: find.text(label),
+            matching: find.byType(RichText),
+          ),
+        );
+        expect(renderedText.text.style!.fontFamily, family);
+        expect(renderedText.text.style!.fontSize, fontSize);
+      }
+      expect(tester.widget<Text>(find.text('explicit')).style, explicitText);
+      for (final type in [DateDividers, HourDividers]) {
+        final painter = tester
+            .widget<CustomPaint>(
+              find
+                  .descendant(
+                    of: find.byType(type),
+                    matching: find.byType(CustomPaint),
+                  )
+                  .first,
+            )
+            .painter!;
+        expect(
+          (Canvas canvas) => painter.paint(canvas, const Size(200, 100)),
+          paints..line(color: color, strokeWidth: width),
+        );
+      }
+      expect(date.value.date, day);
+      expect(tester.takeException(), isNull);
+    }
+    await tester.pumpWidget(const SizedBox());
+    date.dispose();
+    time.dispose();
+  });
+
   testWidgets('style and theme copies preserve immutable values', (
     tester,
   ) async {

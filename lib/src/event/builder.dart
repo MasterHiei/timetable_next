@@ -4,14 +4,15 @@ import '../components/multi_date_event_header_overflow.dart';
 import 'all_day.dart';
 import 'event.dart';
 
-typedef EventBuilder<E extends Event> =
-    Widget Function(BuildContext context, E event);
-typedef AllDayOverflowBuilder<E extends Event> =
-    Widget Function(
-      BuildContext context,
-      DateTime date,
-      List<E> overflowedEvents,
-    );
+typedef EventBuilder<E extends Event> = Widget Function(
+  BuildContext context,
+  E event,
+);
+typedef AllDayOverflowBuilder<E extends Event> = Widget Function(
+  BuildContext context,
+  DateTime date,
+  List<E> overflowedEvents,
+);
 
 class DefaultEventBuilder<E extends Event> extends InheritedWidget {
   DefaultEventBuilder({
