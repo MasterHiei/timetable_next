@@ -218,7 +218,7 @@ jobs:
           driver_pid=$!
           trap 'kill "$driver_pid"' EXIT
           python3 tool/web_smoke.py driver-ready
-          (cd example && flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d web-server --browser-name=chrome --driver-port=4444 --headless)
+          (cd example && flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d web-server --browser-name=chrome --chrome-binary="$CHROME_EXECUTABLE" --driver-port=4444 --headless)
           (cd example && flutter build web --release --no-pub --base-href /timetable_next/ --no-web-resources-cdn)
           python3 tool/ci.py stamp-web example/build/web
           python3 tool/web_smoke.py local example/build/web
